@@ -67,7 +67,7 @@ The domain is the production identity; adding it to metadata does not deploy or 
 
 The supplied zebra logo anchors a warm paper-and-ink palette, editorial typography, subtle diagonal texture, and rounded play cards. Daily stays the primary action; Unlimited and saved scores are one tap away. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
 
-Inspiration: [21st.dev Minimal Button](https://21st.dev/@radiumcoders/components/minimal-button) and [shadcn Card](https://docs.21st.dev/@shadcn/components/card). The styling uses the existing Tailwind/shadcn stack without new dependencies.
+Inspiration: [21st.dev Minimal Button](https://21st.dev/@radiumcoders/components/minimal-button). The styling uses the existing Tailwind/shadcn stack without new dependencies.
 
 This repository carries forward the existing game schema and migrations. The legacy `CONNECT_TWO_SYSTEM_PROMPT`, local Supabase project ID, and browser storage key remain compatible with the previous app. Anonymous IDs are scoped to the browser's origin; moving to a different domain creates a new browser identity.
 
