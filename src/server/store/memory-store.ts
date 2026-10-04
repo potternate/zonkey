@@ -1,4 +1,6 @@
 import { resolveSubmission } from "@/lib/game/engine";
+import { MAX_ROUNDS } from "@/lib/game/config";
+import type { DailyResults } from "@/lib/game/daily-results";
 import { playerScores, type PlayerScores } from "@/lib/game/scores";
 import { firstGuessBoardKey, type FirstGuessBoard } from "@/lib/game/first-guesses";
 import type { GameRecord, RoundRecord } from "@/lib/game/view";
@@ -68,6 +70,31 @@ export class MemoryStore implements GameStore {
 
   async getPlayerScores(playerId: string, dailyDate: string): Promise<PlayerScores> {
     return playerScores([...this.games.values()].filter((game) => game.playerId === playerId), dailyDate);
+  }
+
+  async getDailyResults(gameId: string, playerId: string): Promise<DailyResults | null> {
+    const game = this.games.get(gameId);
+    if (!game || game.playerId !== playerId || game.mode !== "daily" || game.status === "active" || !game.completedAt) return null;
+    const ownRounds = game.finalRounds;
+    if (ownRounds === null || ownRounds < 1 || ownRounds > MAX_ROUNDS) return null;
+    const completed = [...this.games.values()].filter((other) =>
+      other.mode === "daily" && other.puzzleDate === game.puzzleDate &&
+      other.status !== "active" && other.completedAt !== null &&
+      other.finalRounds !== null && other.finalRounds >= 1 && other.finalRounds <= MAX_ROUNDS,
+    );
+    const peers = completed.filter((other) => other.id !== gameId);
+    const worse = game.status === "won" ? peers.filter((other) =>
+      other.status === "lost" || (other.finalRounds !== null && other.finalRounds > ownRounds),
+    ).length : 0;
+    return {
+      distribution: Array.from({ length: MAX_ROUNDS }, (_, index) => ({
+        rounds: index + 1,
+        count: completed.filter((other) => other.status === "won" && other.finalRounds === index + 1).length,
+      })),
+      failed: completed.filter((other) => other.status === "lost").length,
+      totalPlayers: completed.length,
+      betterThanPercent: peers.length ? Math.floor(worse * 100 / peers.length) : null,
+    };
   }
 
   async getFirstGuesses(boardKey: string): Promise<FirstGuessBoard> {

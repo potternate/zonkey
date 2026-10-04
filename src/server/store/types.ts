@@ -1,6 +1,7 @@
 import type { GameMode, GameStatus } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
+import type { DailyResults } from "@/lib/game/daily-results";
 import type { GameRecord, RoundRecord } from "@/lib/game/view";
 
 export interface NewGameInput {
@@ -54,6 +55,7 @@ export interface GameStore {
   getGame(gameId: string): Promise<GameRecord | null>;
   findDailyGame(playerId: string, puzzleDate: string): Promise<GameRecord | null>;
   getPlayerScores(playerId: string, dailyDate: string): Promise<PlayerScores>;
+  getDailyResults(gameId: string, playerId: string): Promise<DailyResults | null>;
   getFirstGuesses(boardKey: string): Promise<FirstGuessBoard>;
   getFirstGuessWords(boardKey: string): Promise<string[]>;
   consumeAiQuota(playerId: string, playerLimit: number, globalLimit: number): Promise<boolean>;

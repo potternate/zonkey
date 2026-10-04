@@ -1,6 +1,7 @@
 import "server-only";
 import { MAX_ROUNDS } from "@/lib/game/config";
 import { dailyPuzzle } from "@/lib/game/daily";
+import type { DailyResults } from "@/lib/game/daily-results";
 import { firstGuessBoardKey } from "@/lib/game/first-guesses";
 import { validateAnswer } from "@/lib/game/normalize";
 import { randomStartingPair } from "@/lib/game/pairs";
@@ -105,6 +106,15 @@ export async function startGame(input: StartGameInput): Promise<GameView> {
 
 export async function getGame(playerId: string, gameId: string): Promise<GameView> {
   return loadView(await loadOwnedGame(playerId, gameId));
+}
+
+export async function getDailyResults(playerId: string, gameId: string): Promise<DailyResults> {
+  const game = await loadOwnedGame(playerId, gameId);
+  if (game.mode !== "daily") throw new GameError("not_found", "Daily results are only available for Daily games.");
+  if (game.status === "active") throw new GameError("conflict", "Finish your Daily to see everyone’s results.");
+  const results = await getStore().getDailyResults(gameId, playerId);
+  if (!results) throw new GameError("conflict", "Finish your Daily to see everyone’s results.");
+  return results;
 }
 
 export async function trackShare(playerId: string, gameId: string): Promise<void> {

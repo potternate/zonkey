@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { GameMode, GameStatus } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
+import type { DailyResults } from "@/lib/game/daily-results";
 import type { GameRecord, RoundRecord } from "@/lib/game/view";
 import {
   DuplicateDailyGameError,
@@ -157,6 +158,14 @@ export class SupabaseStore implements GameStore {
       .rpc("player_scores", { p_player_id: playerId, p_daily_date: dailyDate })
       .single<PlayerScores>();
     if (error) throw new Error(`player_scores failed: ${error.message}`);
+    return data;
+  }
+
+  async getDailyResults(gameId: string, playerId: string): Promise<DailyResults | null> {
+    const { data, error } = await this.db
+      .rpc("daily_results", { p_game_id: gameId, p_player_id: playerId })
+      .single<DailyResults | null>();
+    if (error) throw new Error(`daily_results failed: ${error.message}`);
     return data;
   }
 

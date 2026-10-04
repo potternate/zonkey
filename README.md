@@ -8,6 +8,8 @@ You and the AI each pick a word connecting two endpoints. Different words become
 
 Choose **Daily** for one free shared puzzle each UTC day, or **Unlimited** for as many random starting pairs as you want. **Your Scores** keeps Daily and Unlimited results separate, with games played, win percentage, best round count, average winning rounds, and recent results.
 
+After finishing a Daily, see how many players connected in each of 1–8 turns or didn't connect, with your result highlighted. “You did better than X% of players” compares your outcome with other completed games for the same puzzle date: fewer turns beats more turns, any win beats a loss, and ties aren't beaten. Your own game is included in the chart but excluded from your comparison. The percentage rounds down; the first finisher sees a waiting message instead. Refresh to include later completions.
+
 ## Play
 
 [Open the hosted development preview](https://3000--19b87eb205594217889a36a6c5371d9f.preview.devinapps.com).
@@ -60,6 +62,8 @@ See `.env.example`. All variables are server-only.
 1. Create a Supabase project and run `supabase/migrations/*.sql` (or `npx supabase db push`).
 2. Import the repo in Vercel and set the env vars above.
 3. Add `zonkey.io` to the Vercel project's domains and apply the DNS records Vercel provides.
+
+For existing deployments, apply `20261004220234_daily_results.sql` before deploying the Daily results feature. It adds an index and the server-only `daily_results` aggregate RPC; existing completed games count immediately, without a backfill. The API and RPC both require the requesting player's own Daily to be complete, and the client only fetches results on the finished Daily screen. Unlimited, active games, and other puzzle dates aren't included.
 
 The domain is the production identity; adding it to metadata does not deploy or configure DNS. Native sharing uses the current site's origin so development preview links remain playable.
 

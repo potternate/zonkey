@@ -12,6 +12,7 @@ import { Chain } from "./chain";
 import { gameLabel } from "./header";
 import { ScoreSummary } from "./scores-screen";
 import { FirstGuesses } from "./first-guesses";
+import { DailyResultsChart } from "./daily-results";
 
 export function ResultScreen({
   game, scores, onPlayAgain, onHome, onScores, busy, error,
@@ -71,6 +72,10 @@ export function ResultScreen({
       </div>
 
       <Chain game={game} />
+
+      {game.mode === "daily" && game.status !== "active" && (
+        <DailyResultsChart key={game.id} gameId={game.id} puzzleNumber={game.puzzleNumber} won={won} rounds={rounds} />
+      )}
 
       {scores && (
         <div className="w-full space-y-3">
