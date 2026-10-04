@@ -22,7 +22,7 @@ export function BrandHeader({
           <span className="flex size-11 items-center justify-center rounded-xl border bg-card">
             <Image src="/zonkey-mark.webp" alt="" width={29} height={34} priority className="h-8 w-7 object-contain" />
           </span>
-          <span className="text-2xl font-extrabold tracking-[-0.07em]">zonkey<span className="text-primary">.</span></span>
+          <span className="text-2xl font-extrabold tracking-[-0.07em]">zonkey</span>
         </button>
         <nav aria-label="Game navigation" className="flex gap-1">
           {!home && (
