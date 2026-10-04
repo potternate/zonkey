@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { ApiError, api } from "@/lib/client/api";
 import type { GameMode, GameView, Reveal } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
@@ -19,7 +20,7 @@ function messageOf(err: unknown): string {
   return err instanceof ApiError ? err.message : "Something went wrong.";
 }
 
-export function Zonkey() {
+export function Zonkey({ children }: { children?: ReactNode }) {
   const [phase, setPhase] = useState<Phase>("landing");
   const [game, setGame] = useState<GameView | null>(null);
   const [reveal, setReveal] = useState<Reveal | null>(null);
@@ -188,6 +189,7 @@ export function Zonkey() {
           <ResultScreen game={game} scores={scores} onScores={() => setPhase("scores")} onHome={goHome} onPlayAgain={() => start("unlimited")} busy={starting} error={startError} />
         )}
       </div>
+      {phase === "landing" && children}
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-5 text-[11px] text-muted-foreground sm:mt-14">
         <span>Follow the words. Find your stripe.</span>
         <div className="flex items-center gap-4">
