@@ -34,6 +34,15 @@ export async function generateMetadata({
       description,
       url: `/daily/${date}`,
       type: "article",
+      siteName: "Zonkey",
+      images: [
+        {
+          url: "/opengraph-image.png",
+          width: 1200,
+          height: 630,
+          alt: "Zonkey zebra mascot on a dark striped background",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
