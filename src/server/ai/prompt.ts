@@ -6,9 +6,10 @@ Choose exactly one word.
 Do not choose either endpoint.
 Return JSON only, in the form {"word": "example"}.`;
 
-/** Override without a deploy of code changes by setting CONNECT_TWO_SYSTEM_PROMPT. */
 export function getSystemPrompt(): string {
-  return process.env.CONNECT_TWO_SYSTEM_PROMPT?.trim() || DEFAULT_SYSTEM_PROMPT;
+  return process.env.ZONKEY_SYSTEM_PROMPT?.trim()
+    || process.env.CONNECT_TWO_SYSTEM_PROMPT?.trim()
+    || DEFAULT_SYSTEM_PROMPT;
 }
 
 export function buildUserPrompt(wordA: string, wordB: string): string {

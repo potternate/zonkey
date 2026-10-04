@@ -9,7 +9,7 @@ export function FirstGuesses({ board, yourWord }: { board: FirstGuessBoard; your
         {board.guesses.slice(0, 8).map((guess) => (
           <li key={guess.word} className="flex items-center justify-between gap-3 py-2.5 text-sm">
             <span className={`min-w-0 break-words ${guess.word === yourWord ? "font-bold" : ""}`}>
-              {guess.word}{guess.word === yourWord && <span className="ml-2 text-xs text-muted-foreground">YOU</span>}
+              {guess.word}{guess.word === yourWord && <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">YOU</span>}
             </span>
             <span className="shrink-0 font-bold tabular-nums">{guess.count}</span>
           </li>

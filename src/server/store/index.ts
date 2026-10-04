@@ -3,10 +3,10 @@ import { MemoryStore } from "./memory-store";
 import { SupabaseStore } from "./supabase-store";
 import type { GameStore } from "./types";
 
-const globalForStore = globalThis as typeof globalThis & { __connectTwoStore?: GameStore };
+const globalForStore = globalThis as typeof globalThis & { __zonkeyStore?: GameStore };
 
 export function getStore(): GameStore {
-  if (globalForStore.__connectTwoStore) return globalForStore.__connectTwoStore;
+  if (globalForStore.__zonkeyStore) return globalForStore.__zonkeyStore;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   let store: GameStore;
@@ -18,6 +18,6 @@ export function getStore(): GameStore {
   } else {
     throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in production");
   }
-  globalForStore.__connectTwoStore = store;
+  globalForStore.__zonkeyStore = store;
   return store;
 }

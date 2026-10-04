@@ -6,9 +6,9 @@ function Pill({ word, tone }: { word: string; tone: "start" | "miss" | "hit" }) 
     <span
       className={cn(
         "min-w-0 break-words rounded-xl px-3 py-3 text-center text-sm font-semibold",
-        tone === "start" && "bg-foreground text-background",
+        tone === "start" && "border border-primary/25 bg-primary/10 text-primary",
         tone === "miss" && "border bg-card",
-        tone === "hit" && "bg-[#e3edd3] text-[#304b23]",
+        tone === "hit" && "border border-success-border bg-success-muted text-success",
       )}
     >
       {word}
@@ -22,7 +22,7 @@ export function Chain({ game }: { game: GameView }) {
       <li className="grid grid-cols-[2rem_1fr_1fr] items-center gap-2 text-[10px] font-bold tracking-[0.25em] text-muted-foreground">
         <span />
         <span className="text-center">YOU</span>
-        <span className="text-center">AI</span>
+        <span className="text-center">ZONKEY AI</span>
       </li>
       <li className="grid grid-cols-[2rem_1fr_1fr] items-center gap-2">
         <span className="text-xs text-muted-foreground">▶</span>

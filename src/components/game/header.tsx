@@ -4,7 +4,7 @@ import type { GameMode } from "@/lib/game/types";
 export function GameHeader({ round, maxRounds, label }: { round: number; maxRounds: number; label: string }) {
   return (
     <header className="flex flex-col items-center gap-4 pt-9">
-      <div className="eyebrow rounded-full border px-4 py-2 text-muted-foreground">{label}</div>
+      <div className="eyebrow rounded-full border border-primary/25 bg-primary/5 px-4 py-2 text-primary">{label}</div>
       <div className="text-sm font-semibold">
         Round {round}
         <span className="text-muted-foreground"> / {maxRounds}</span>
@@ -15,7 +15,7 @@ export function GameHeader({ round, maxRounds, label }: { round: number; maxRoun
             key={i}
             className={cn(
               "h-1.5 w-6 rounded-full transition-colors",
-              i < round - 1 ? "bg-foreground/60" : i === round - 1 ? "bg-foreground" : "bg-border",
+              i < round - 1 ? "bg-primary/40" : i === round - 1 ? "bg-primary" : "bg-border",
             )}
           />
         ))}

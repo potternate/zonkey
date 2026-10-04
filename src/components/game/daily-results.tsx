@@ -62,7 +62,7 @@ export function DailyResultsChart({
             {results.betterThanPercent === null ? (
               <>You&rsquo;re the first to finish.<span className="mt-1 block text-sm text-muted-foreground">Check back as more players finish.</span></>
             ) : (
-              <>You did better than <strong className="font-bold text-[#42652f]">{results.betterThanPercent}%</strong> of players.</>
+              <>You did better than <strong className="font-bold text-success">{results.betterThanPercent}%</strong> of players.</>
             )}
           </p>
           <div className="space-y-3">
@@ -72,8 +72,8 @@ export function DailyResultsChart({
                 <li key={row.label} className="flex items-center gap-2 text-xs" aria-label={`${row.label}: ${row.count} player${row.count === 1 ? "" : "s"}${row.yours ? ", including you" : ""}`}>
                   <span className="w-14 shrink-0 font-bold">{row.label}</span>
                   <div className="relative h-7 flex-1 overflow-hidden rounded-md bg-muted" aria-hidden="true">
-                    <div className={`h-full rounded-md ${row.yours ? "bg-[#42652f]" : "bg-foreground/55"}`} style={{ width: `${row.count ? Math.max(2, row.count / largest * 100) : 0}%` }} />
-                    {row.yours && <span className="absolute inset-y-0 right-2 flex items-center"><span className="rounded bg-card px-1 py-0.5 text-[10px] font-bold">YOU</span></span>}
+                    <div className={`h-full rounded-md ${row.yours ? "bg-success" : "bg-muted-foreground/55"}`} style={{ width: `${row.count ? Math.max(2, row.count / largest * 100) : 0}%` }} />
+                    {row.yours && <span className="absolute inset-y-0 right-2 flex items-center"><span className="rounded bg-background px-1 py-0.5 text-[10px] font-bold text-success">YOU</span></span>}
                   </div>
                   <span className="min-w-8 shrink-0 text-right font-bold tabular-nums">{row.count.toLocaleString("en-US")}</span>
                 </li>

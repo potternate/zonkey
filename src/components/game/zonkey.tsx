@@ -189,7 +189,7 @@ export function Zonkey() {
         )}
       </div>
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-5 text-[11px] text-muted-foreground sm:mt-14">
-        <span>A little wordplay. A little mind reading.</span>
+        <span>Follow the words. Find your stripe.</span>
         <span className="font-mono tracking-wide">zonkey.io</span>
       </footer>
     </main>

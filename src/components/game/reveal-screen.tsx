@@ -20,7 +20,7 @@ function Card({ label, word, matched, delay }: { label: string; word: string; ma
     <div
       className={cn(
         "animate-flip-in flex min-w-0 flex-col items-center gap-4 rounded-3xl border px-4 py-8",
-        matched ? "border-[#bed5a0] bg-[#e3edd3] text-[#304b23]" : "border-border bg-card",
+        matched ? "border-success-border bg-success-muted text-success" : "border-border bg-card",
       )}
       style={{ animationDelay: `${delay}ms` }}
     >
@@ -42,16 +42,16 @@ export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses }: Pro
     <div className="flex flex-1 flex-col gap-6 pt-8">
       <div className="grid grid-cols-2 gap-3 [perspective:800px]">
         <Card label="YOU" word={reveal.playerAnswer} matched={reveal.matched} delay={0} />
-        <Card label="AI" word={reveal.aiAnswer} matched={reveal.matched} delay={250} />
+        <Card label="ZONKEY AI" word={reveal.aiAnswer} matched={reveal.matched} delay={250} />
       </div>
 
       {reveal.matched && reveal.playerAnswer !== reveal.aiAnswer && (
-        <p className="text-center text-sm text-emerald-700">Same meaning counts as a match.</p>
+        <p className="text-center text-sm text-success">Synonyms count as a connection.</p>
       )}
 
       <div className="animate-in fade-in fill-mode-both text-center delay-700 duration-500">
         {reveal.matched ? (
-          <p className="animate-pop text-3xl font-bold tracking-tight text-[#42652f]">Same wavelength.</p>
+          <p className="animate-pop text-3xl font-bold tracking-tight text-success">You found your stripe.</p>
         ) : gameOver ? (
           <p className="text-lg font-bold">Out of rounds.</p>
         ) : (
