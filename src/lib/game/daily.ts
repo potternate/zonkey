@@ -1,5 +1,5 @@
 import { DAILY_EPOCH, DAILY_PAIR_EPOCH } from "./config";
-import { STARTING_PAIRS } from "./pairs";
+import { LEGACY_STARTING_PAIRS, STARTING_PAIRS } from "./pairs";
 import type { StartingPair } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -18,9 +18,12 @@ export function puzzleNumberForDate(date: string): number {
 }
 
 export function pairForPuzzle(puzzleNumber: number): StartingPair {
-  const n = STARTING_PAIRS.length;
   const index = puzzleNumber - puzzleNumberForDate(DAILY_PAIR_EPOCH);
-  return STARTING_PAIRS[((index % n) + n) % n];
+  if (index < 0) {
+    const n = LEGACY_STARTING_PAIRS.length;
+    return LEGACY_STARTING_PAIRS[((index % n) + n) % n];
+  }
+  return STARTING_PAIRS[index % STARTING_PAIRS.length];
 }
 
 export function dailyPuzzle(now: Date = new Date()) {

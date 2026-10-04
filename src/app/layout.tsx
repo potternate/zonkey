@@ -9,18 +9,38 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zonkey.io"),
-  title: "Zonkey — Two words. One wild match.",
-  description: "Connect two words with Zonkey's AI in eight turns or fewer. Play one free Daily puzzle or go Unlimited.",
+  title: {
+    default: "Zonkey — Daily Word Association Game",
+    template: "%s | Zonkey",
+  },
+  description:
+    "Play Zonkey, a free daily word association game. Connect two starting words with an AI in eight turns, compare scores, or play unlimited puzzles.",
   applicationName: "Zonkey",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Zonkey — Two words. One wild match.",
-    description: "Find your stripe. Connect two words with the AI in eight turns or fewer. A fresh Daily and endless Unlimited games.",
+    title: "Zonkey — Daily Word Association Game",
+    description:
+      "Connect two starting words with an AI in eight turns or fewer. Play the free shared Daily or unlimited word association puzzles.",
     siteName: "Zonkey",
     url: "/",
     type: "website",
+    locale: "en_US",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Zonkey zebra mascot on a dark striped background",
+      },
+    ],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zonkey — Daily Word Association Game",
+    description:
+      "Connect two starting words with an AI. Play one free shared Daily or go Unlimited.",
+    images: ["/opengraph-image.png"],
+  },
 };
 
 export const viewport: Viewport = {

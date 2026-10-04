@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DAILY_EPOCH } from "./config";
 import { dailyPuzzle, isAcceptablePuzzleDate, pairForPuzzle, puzzleNumberForDate } from "./daily";
-import { STARTING_PAIRS } from "./pairs";
+import { LEGACY_STARTING_PAIRS, STARTING_PAIRS } from "./pairs";
 
 describe("daily puzzle", () => {
   it("numbers puzzles from the epoch", () => {
@@ -23,6 +23,13 @@ describe("daily puzzle", () => {
     expect(dailyPuzzle(new Date("2026-10-02T00:00:00Z"))).toEqual({
       date: "2026-10-02", number: 3, pair: STARTING_PAIRS[1],
     });
+  });
+
+  it("preserves the pre-rotation Daily and then reaches the expanded pool", () => {
+    expect(pairForPuzzle(1)).toBe(LEGACY_STARTING_PAIRS.at(-1));
+    expect(pairForPuzzle(2 + LEGACY_STARTING_PAIRS.length)).toBe(
+      STARTING_PAIRS[LEGACY_STARTING_PAIRS.length],
+    );
   });
 
   it("accepts local dates within a day of server time", () => {

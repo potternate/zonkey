@@ -6,7 +6,7 @@ zonkey.io
 
 You and the AI each pick a word connecting two endpoints. Different words become the next round's endpoints; matching words win. From round 2 onward, equivalent meanings also connect. Max 8 rounds.
 
-Choose **Daily** for one free shared puzzle each UTC day, or **Unlimited** for as many random starting pairs as you want. **Your Scores** keeps Daily and Unlimited results separate, with games played, win percentage, best round count, average winning rounds, and recent results.
+Choose **Daily** for one free shared puzzle each UTC day, or **Unlimited** for as many random starting pairs as you want. The pool has 1,365 unique starter words and 6,924 distinct pairs for both modes. **Your Scores** keeps Daily and Unlimited results separate, with games played, win percentage, best round count, average winning rounds, and recent results.
 
 After finishing a Daily, see how many players connected in each of 1–8 turns or didn't connect, with your result highlighted. “You did better than X% of players” compares your outcome with other completed games for the same puzzle date: fewer turns beats more turns, any win beats a loss, and ties aren't beaten. Your own game is included in the chart but excluded from your comparison. The percentage rounds down; the first finisher sees a waiting message instead. Refresh to include later completions.
 
@@ -15,6 +15,14 @@ After finishing a Daily, see how many players connected in each of 1–8 turns o
 [Play Zonkey](https://zonkey.io).
 
 Vercel creates a preview for each pull request; the deployment link appears on the PR and may require Vercel sign-in.
+
+## Discoverability
+
+The landing page includes server-rendered how-to and FAQ content, with matching FAQ and VideoGame JSON-LD. Keyword-focused titles, descriptions, canonical URLs, and the zebra Open Graph image use `https://zonkey.io`.
+
+`/daily` links to every published puzzle date from September 30, 2026 through the current UTC day. Each `/daily/YYYY-MM-DD` page shows its puzzle number and starting pair without any player guesses or AI answers. These are archive reference pages; the play button opens today's game. Invalid, pre-launch, and future dates return 404.
+
+`/sitemap.xml` lists the home page, archive, and published dates. The archive and sitemap render on request so each new UTC date appears without a rebuild. `/robots.txt` allows public pages and excludes API routes.
 
 ## Stack
 
@@ -86,7 +94,7 @@ Returning players' anonymous IDs are copied to `zonkey:player-id` from the legac
 
 The client never receives the current round's AI answer, and the server owns round number, game state, canonical words and win condition. If AI generation or judging fails, the round stays unanswered, no attempt is counted, and the player can retry.
 
-Daily puzzle: `puzzle # = days since 2026-09-30 + 1`, so October 1, 2026 is #2 and October 2 is #3. The pair rotation stays anchored to October 1 using `src/lib/game/pairs.ts`; renumbering preserves the existing starting pairs and shared boards. Apply `20261001173953_daily_puzzle_numbers.sql` to update saved Daily game numbers and score history. The server's UTC date controls the puzzle for everyone. Client-supplied dates are ignored. One daily game per anonymous browser identity per date; a completed puzzle opens its saved result. Clearing browser identity or using a different browser creates a new anonymous player.
+Daily puzzle: `puzzle # = days since 2026-09-30 + 1`, so October 1, 2026 is #2 and October 2 is #3. The pair rotation stays anchored to October 1 using `src/lib/game/pairs.ts`. The original 32 pairs remain at the start of the expanded rotation, and puzzle #1 keeps its original pair, so existing shared boards do not move. Daily advances deterministically through the full pool while Unlimited samples the same pool randomly. Apply `20261001173953_daily_puzzle_numbers.sql` to update saved Daily game numbers and score history. The server's UTC date controls the puzzle for everyone. Client-supplied dates are ignored. One daily game per anonymous browser identity per date; a completed puzzle opens its saved result. Clearing browser identity or using a different browser creates a new anonymous player.
 
 First-round guesses are corrected to single canonical words by an LLM. Equivalent existing board words reuse the existing entry. Every new accepted first guess starts at 1; matching canonical guesses from other players increment that count. Daily boards are grouped by puzzle date, Unlimited boards by starting pair. Counts are updated in the submission transaction so concurrent retries cannot count twice. Existing first-round submissions are backfilled by the migration. Boards are only sent after the player has submitted their first guess.
 
@@ -100,7 +108,7 @@ Sharing calls `navigator.share({ title, text })` directly from the tap, before a
 
 ```text
 Zonkey #2
-2/8
+Connected in 2/8 🦓
 
 ⬜⬜ 🟩🟩
 https://zonkey.io
