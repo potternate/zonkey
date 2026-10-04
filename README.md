@@ -2,17 +2,19 @@
 
 zonkey.io
 
-**Two minds. One word.** A mobile-first daily word-convergence game against an AI.
+**Two words. One wild match.** A mobile-first daily word-convergence game against an AI.
 
 You and the AI each pick a word connecting two endpoints. Different words become the next round's endpoints; matching words win. From round 2 onward, equivalent meanings also connect. Max 8 rounds.
 
 Choose **Daily** for one free shared puzzle each UTC day, or **Unlimited** for as many random starting pairs as you want. **Your Scores** keeps Daily and Unlimited results separate, with games played, win percentage, best round count, average winning rounds, and recent results.
 
+After finishing a Daily, see how many players connected in each of 1–8 turns or didn't connect, with your result highlighted. “You did better than X% of players” compares your outcome with other completed games for the same puzzle date: fewer turns beats more turns, any win beats a loss, and ties aren't beaten. Your own game is included in the chart but excluded from your comparison. The percentage rounds down; the first finisher sees a waiting message instead. Refresh to include later completions.
+
 ## Play
 
-[Open the hosted development preview](https://3000--19b87eb205594217889a36a6c5371d9f.preview.devinapps.com).
+[Play Zonkey](https://zonkey.io).
 
-This Devin preview requires sign-in and write access to the session, and is available while the session is awake. It uses local Supabase storage and falls back to mock AI when `OPENAI_API_KEY` is unavailable.
+Vercel creates a preview for each pull request; the deployment link appears on the PR and may require Vercel sign-in.
 
 ## Stack
 
@@ -52,7 +54,7 @@ See `.env.example`. All variables are server-only.
 | `OPENAI_TEMPERATURE` | Default `0.2`; `none` to omit |
 | `AI_REQUESTS_PER_PLAYER_HOUR` | AI generation/judging request limit per player; default `120` |
 | `AI_REQUESTS_GLOBAL_HOUR` | AI generation/judging request limit across all players; default `5000` |
-| `CONNECT_TWO_SYSTEM_PROMPT` | Override the AI system prompt (`src/server/ai/prompt.ts`) |
+| `ZONKEY_SYSTEM_PROMPT` | Override the AI system prompt (`src/server/ai/prompt.ts`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Persistence (required in production) |
 
 ## Deploy (Vercel + Supabase)
@@ -61,15 +63,17 @@ See `.env.example`. All variables are server-only.
 2. Import the repo in Vercel and set the env vars above.
 3. Add `zonkey.io` to the Vercel project's domains and apply the DNS records Vercel provides.
 
+For existing deployments, apply `20261004220234_daily_results.sql` before deploying the Daily results feature. It adds an index and the server-only `daily_results` aggregate RPC; existing completed games count immediately, without a backfill. The API and RPC both require the requesting player's own Daily to be complete, and the client only fetches results on the finished Daily screen. Unlimited, active games, and other puzzle dates aren't included.
+
 The domain is the production identity; adding it to metadata does not deploy or configure DNS. Native sharing uses the current site's origin so development preview links remain playable.
 
 ## Design
 
-The supplied zebra logo anchors a warm paper-and-ink palette, editorial typography, subtle diagonal texture, and rounded play cards. Daily stays the primary action; Unlimited and saved scores are one tap away. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
+The supplied zebra mascot anchors Zonkey's dark charcoal surfaces, zebra stripe texture, bold typography, and lime accents. Dark mode is rendered from the first page load, including native controls and the mobile browser theme. Daily stays the primary action; Unlimited and saved scores are one tap away. The same palette carries through gameplay, reveals, result charts, scores, instructions, and social preview artwork. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
 
 Inspiration: [21st.dev Minimal Button](https://21st.dev/@radiumcoders/components/minimal-button). The styling uses the existing Tailwind/shadcn stack without new dependencies.
 
-This repository carries forward the existing game schema and migrations. The legacy `CONNECT_TWO_SYSTEM_PROMPT`, local Supabase project ID, and browser storage key remain compatible with the previous app. Anonymous IDs are scoped to the browser's origin; moving to a different domain creates a new browser identity.
+Returning players' anonymous IDs are copied to `zonkey:player-id` from the legacy browser storage key, keeping Daily progress and scores. The original key remains available for older open tabs. Anonymous IDs are scoped to the browser's origin; moving to a different domain creates a new browser identity. Existing `CONNECT_TWO_SYSTEM_PROMPT` overrides remain a fallback when `ZONKEY_SYSTEM_PROMPT` is unset. The local Supabase project ID remains unchanged to preserve existing development database volumes.
 
 ## Architecture
 

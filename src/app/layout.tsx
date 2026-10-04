@@ -9,13 +9,13 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zonkey.io"),
-  title: "Zonkey — Two minds. One word.",
-  description: "You think of a word. The AI does too. Keep connecting until you think alike. Play the free daily word game or go unlimited.",
+  title: "Zonkey — Two words. One wild match.",
+  description: "Connect two words with Zonkey's AI in eight turns or fewer. Play one free Daily puzzle or go Unlimited.",
   applicationName: "Zonkey",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Zonkey — Two minds. One word.",
-    description: "A little wordplay. A little mind reading. Your daily meeting of minds.",
+    title: "Zonkey — Two words. One wild match.",
+    description: "Find your stripe. Connect two words with the AI in eight turns or fewer. A fresh Daily and endless Unlimited games.",
     siteName: "Zonkey",
     url: "/",
     type: "website",
@@ -27,7 +27,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f7f7f0",
+  themeColor: "#10120f",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -36,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.variable}>
+    <html lang="en" className={`dark ${geistSans.variable}`}>
       <body className="antialiased">{children}</body>
     </html>
   );

@@ -3,7 +3,7 @@ import { MockAnswerJudge } from "./ai/mock-judge";
 import type { ReviewAnswerInput } from "./ai/types";
 import { MemoryStore } from "./store/memory-store";
 import { firstGuessBoardKey } from "@/lib/game/first-guesses";
-import { getGame, prepareRound, startGame, submitAnswer, trackShare } from "./game-service";
+import { getDailyResults, getGame, prepareRound, startGame, submitAnswer, trackShare } from "./game-service";
 
 const { chooseWord, reviewAnswer } = vi.hoisted(() => ({
   chooseWord: vi.fn(),
@@ -175,5 +175,30 @@ describe("semantic wins", () => {
     const result = await submitAnswer({ playerId, gameId: game.id, roundNumber: 2, answer: "ocean" });
     expect(result.game.status).toBe("active");
     expect(result.reveal.matched).toBe(false);
+  });
+});
+
+describe("Daily results privacy", () => {
+  it("blocks results at the service boundary before the Daily finishes", async () => {
+    const playerId = crypto.randomUUID();
+    const game = await startGame({ playerId, mode: "daily" });
+    const aggregate = vi.spyOn(store, "getDailyResults");
+    await expect(getDailyResults(playerId, game.id)).rejects.toMatchObject({ code: "conflict", status: 409 });
+    await submitAnswer({ playerId, gameId: game.id, roundNumber: 1, answer: "beach" });
+    await expect(getDailyResults(playerId, game.id)).rejects.toMatchObject({ code: "conflict" });
+    expect(aggregate).not.toHaveBeenCalled();
+    expect(await getGame(playerId, game.id)).not.toHaveProperty("dailyResults");
+  });
+
+  it("returns completed results for the original puzzle even after midnight", async () => {
+    const playerId = crypto.randomUUID();
+    const game = await startGame({ playerId, mode: "daily" });
+    await submitAnswer({ playerId, gameId: game.id, roundNumber: 1, answer: "water" });
+    vi.setSystemTime(new Date("2026-10-02T00:01:00Z"));
+    const tomorrow = await startGame({ playerId: crypto.randomUUID(), mode: "daily" });
+    expect((await getDailyResults(playerId, game.id)).totalPlayers).toBe(1);
+    await expect(getDailyResults(playerId, tomorrow.id)).rejects.toMatchObject({ code: "not_found" });
+    const unlimited = await startGame({ playerId, mode: "unlimited" });
+    await expect(getDailyResults(playerId, unlimited.id)).rejects.toMatchObject({ code: "not_found" });
   });
 });

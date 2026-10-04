@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Link2, Share2 } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/client/api";
 import { copyText, shareText } from "@/lib/client/share";
@@ -12,6 +13,7 @@ import { Chain } from "./chain";
 import { gameLabel } from "./header";
 import { ScoreSummary } from "./scores-screen";
 import { FirstGuesses } from "./first-guesses";
+import { DailyResultsChart } from "./daily-results";
 
 export function ResultScreen({
   game, scores, onPlayAgain, onHome, onScores, busy, error,
@@ -60,17 +62,23 @@ export function ResultScreen({
   return (
     <div className="flex flex-1 flex-col items-center gap-7 pt-10 pb-8 text-center">
       <div className="space-y-3 animate-in fade-in zoom-in-95 duration-500">
-        <span className={won ? "mx-auto flex size-14 items-center justify-center rounded-full bg-[#e3edd3] text-[#42652f]" : "mx-auto flex size-14 items-center justify-center rounded-full bg-muted"}><Link2 className="size-6" /></span>
+        <span className={`mx-auto flex size-20 items-center justify-center rounded-3xl border ${won ? "border-success-border bg-success-muted" : "bg-card"}`}>
+          <Image src="/zonkey-mark.webp" alt="" width={46} height={60} className="h-15 w-12 object-contain" />
+        </span>
         <div className="eyebrow text-muted-foreground">{gameLabel(game.mode, game.puzzleNumber)}</div>
-        <h2 className={won ? "animate-pop text-5xl font-bold tracking-[-0.06em] text-[#42652f]" : "text-4xl font-bold tracking-[-0.06em]"}>
+        <h2 className={won ? "animate-pop text-5xl font-bold tracking-[-0.06em] text-success" : "text-4xl font-bold tracking-[-0.06em]"}>
           {won ? "Connected." : "So close."}
         </h2>
         <p className="text-sm text-muted-foreground">
-          {won ? `Two minds met in ${rounds} round${rounds === 1 ? "" : "s"}.` : `No match in ${game.maxRounds} rounds. A new pair awaits.`}
+          {won ? `You and Zonkey connected in ${rounds} turn${rounds === 1 ? "" : "s"}.` : `No match in ${game.maxRounds} turns. A new pair awaits.`}
         </p>
       </div>
 
       <Chain game={game} />
+
+      {game.mode === "daily" && game.status !== "active" && (
+        <DailyResultsChart key={game.id} gameId={game.id} puzzleNumber={game.puzzleNumber} won={won} rounds={rounds} />
+      )}
 
       {scores && (
         <div className="w-full space-y-3">
@@ -91,7 +99,7 @@ export function ResultScreen({
           </a>
         )}
         {manualCopy && (
-          <textarea aria-label="Result to copy" readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} className="min-h-48 w-full rounded-xl border p-3 text-base" />
+          <textarea aria-label="Result to copy" readOnly value={manualCopy} onFocus={(event) => event.currentTarget.select()} className="min-h-48 w-full rounded-xl border border-input bg-card p-3 text-base" />
         )}
         <Button
           variant="outline"

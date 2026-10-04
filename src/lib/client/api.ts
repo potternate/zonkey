@@ -1,5 +1,6 @@
 import type { GameMode, GameView, Reveal } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
+import type { DailyResults } from "@/lib/game/daily-results";
 import { getPlayerId } from "./player-id";
 
 export class ApiError extends Error {
@@ -34,6 +35,7 @@ export const api = {
   startGame: (mode: GameMode) =>
     request<{ game: GameView }>("/api/games", { method: "POST", body: { mode } }),
   getGame: (id: string) => request<{ game: GameView }>(`/api/games/${id}`),
+  getDailyResults: (id: string) => request<{ results: DailyResults }>(`/api/games/${id}/daily-results`),
   prepare: (id: string) => request<{ game: GameView }>(`/api/games/${id}/prepare`, { method: "POST" }),
   submit: (id: string, roundNumber: number, answer: string) =>
     request<{ game: GameView; reveal: Reveal }>(`/api/games/${id}/submit`, {

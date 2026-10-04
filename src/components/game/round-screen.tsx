@@ -55,9 +55,10 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
 
   return (
     <div key={round.number} className="flex flex-1 flex-col gap-6 pt-7 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex min-w-0 flex-col items-center gap-5 rounded-[2rem] border bg-card px-6 py-8 text-center shadow-[0_4px_24px_#191a1705]">
+      <div className="daily-card relative isolate flex min-w-0 flex-col items-center gap-5 overflow-hidden rounded-[2rem] border bg-card px-6 py-8 text-center [&>*]:relative [&>*]:z-10">
+        <span className="eyebrow text-primary">Find the connection</span>
         <BigWord word={round.wordA} />
-        <div className="flex w-full items-center gap-4" aria-hidden="true"><span className="h-px flex-1 bg-border" /><span className="flex size-9 items-center justify-center rounded-full border text-lg text-muted-foreground">↔</span><span className="h-px flex-1 bg-border" /></div>
+        <div className="flex w-full items-center gap-4" aria-hidden="true"><span className="h-px flex-1 bg-border" /><span className="flex size-9 items-center justify-center rounded-full border border-primary/30 bg-primary/5 text-lg text-primary">↔</span><span className="h-px flex-1 bg-border" /></div>
         <BigWord word={round.wordB} />
       </div>
 
@@ -88,7 +89,7 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
             spellCheck={false}
             enterKeyHint="go"
             maxLength={40}
-            className="h-16 rounded-2xl border bg-card px-5 text-lg font-medium placeholder:text-sm md:text-lg"
+            className="h-16 rounded-2xl border bg-card px-5 text-lg font-medium placeholder:text-sm dark:bg-card md:text-lg"
           />
         </div>
         <Button

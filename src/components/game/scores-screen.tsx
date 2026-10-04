@@ -14,7 +14,7 @@ export function ScoreSummary({ scores }: { scores: ModeScores }) {
     <dl className="grid w-full grid-cols-4 gap-2 divide-x text-center">
       {items.map(([label, value]) => (
         <div key={label}>
-          <dd className="text-2xl font-bold tracking-tight tabular-nums">{value}</dd>
+          <dd className="text-2xl font-bold tracking-tight text-primary tabular-nums">{value}</dd>
           <dt className="mt-1 text-[10px] text-muted-foreground">{label}</dt>
         </div>
       ))}
@@ -60,7 +60,7 @@ export function ScoresScreen({
                       <span className="block text-sm font-bold">{gameLabel(game.mode, game.puzzleNumber)}</span>
                       <span className="text-xs text-muted-foreground">{new Date(game.completedAt).toLocaleDateString()}</span>
                     </span>
-                    <span className={game.status === "won" ? "font-bold text-emerald-600" : "font-bold"}>
+                    <span className={game.status === "won" ? "font-bold text-success" : "font-bold"}>
                       {game.status === "won" ? `${game.rounds} rounds` : "No match"}
                     </span>
                   </button>
