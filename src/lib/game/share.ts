@@ -22,7 +22,7 @@ export function buildShareText(game: GameView, url?: string): string {
 }
 
 export function gameShareUrl(game: GameView, origin: string): string {
-  return game.mode === "practice" && game.puzzleNumber !== null
+  return (game.mode === "practice" || game.mode === "daily") && game.puzzleNumber !== null
     ? `${origin}/?daily=${dateForPuzzleNumber(game.puzzleNumber)}`
     : origin;
 }

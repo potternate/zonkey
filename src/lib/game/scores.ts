@@ -44,6 +44,35 @@ export interface ScoreEntry {
   completedAt: string;
 }
 
+export interface SavedDailyEntry {
+  id: string;
+  date: string;
+  puzzleNumber: number;
+  status: GameStatus;
+  rounds: number;
+}
+
+export function savedDailies(games: GameRecord[], dailyDate: string): SavedDailyEntry[] {
+  const dated = games.filter((game) =>
+    (game.mode === "daily" || game.mode === "practice") &&
+    game.puzzleDate !== null && game.puzzleNumber !== null && game.puzzleDate <= dailyDate,
+  ).sort((a, b) => Number(a.mode !== "daily") - Number(b.mode !== "daily") || b.id.localeCompare(a.id));
+  const byDate = new Map<string, SavedDailyEntry>();
+  for (const game of dated) {
+    const { puzzleDate, puzzleNumber } = game;
+    if (puzzleDate !== null && puzzleNumber !== null && !byDate.has(puzzleDate)) {
+      byDate.set(puzzleDate, {
+        id: game.id,
+        date: puzzleDate,
+        puzzleNumber,
+        status: game.status,
+        rounds: game.status === "active" ? game.roundNumber - 1 : game.finalRounds ?? game.roundNumber,
+      });
+    }
+  }
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
+}
+
 export interface PlayerScores {
   dailyDate: string;
   dailyGame: { id: string; status: GameStatus } | null;
@@ -51,6 +80,7 @@ export interface PlayerScores {
   daily: ModeScores;
   unlimited: ModeScores;
   archive: ModeScores;
+  savedDailies: SavedDailyEntry[];
   recent: ScoreEntry[];
 }
 
@@ -97,6 +127,7 @@ export function playerScores(games: GameRecord[], dailyDate: string): PlayerScor
     daily: modeScores(completed.filter((game) => game.mode === "daily")),
     unlimited: modeScores(completed.filter((game) => scoreMode(game) === "unlimited")),
     archive: modeScores(completed.filter((game) => scoreMode(game) === "archive")),
+    savedDailies: savedDailies(games, dailyDate),
     recent,
   };
 }

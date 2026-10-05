@@ -29,6 +29,11 @@ const questions = [
       "Finish a Daily before midnight UTC on its original day to add to your streak. Wins and losses both count. Yesterday's streak stays active while you have time to finish today's puzzle. Missing a day resets your current streak, but your best streak is saved. Archive practice does not change your streak.",
   },
   {
+    question: "How do I play past Daily puzzles?",
+    answer:
+      "Choose Archive on the home page to open a calendar and a list of past Dailies. Play a date you haven't played, view your saved score for a completed puzzle, or resume an unfinished game. Scores stay with your anonymous identity in the same browser. Archive practice does not change your Daily streak.",
+  },
+  {
     question: "Is Zonkey free, and do I need an account?",
     answer:
       "Zonkey is free to play in your browser on a phone, tablet, or computer. No account is required, and your scores are saved with an anonymous player identity.",

@@ -16,7 +16,7 @@ describe("archive sharing", () => {
     const text = buildShareText(archive, url);
     expect(text).toBe("Zonkey · Archive #2\nConnected in 1/8 🦓\n\n🟩🟩\nhttps://zonkey.io/?daily=2026-10-01");
     expect(text).not.toMatch(/pizza|ocean|beach/);
-    expect(gameShareUrl({ ...archive, mode: "daily" }, "https://zonkey.io")).toBe("https://zonkey.io");
+    expect(gameShareUrl({ ...archive, mode: "daily" }, "https://zonkey.io")).toBe(url);
   });
 
   it("preserves puzzle numbering over leap days and year boundaries", () => {

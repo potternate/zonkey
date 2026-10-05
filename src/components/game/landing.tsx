@@ -63,10 +63,10 @@ export function Landing({
             <span className="min-w-0 flex-1"><span className="block text-base font-bold tracking-tight">Unlimited</span><span className="mt-1 block text-xs text-muted-foreground">New words. As many games as you like.</span></span>
             <ArrowRight className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
           </button>
-          <Link href="/daily" className="group flex min-h-16 w-full items-center gap-4 rounded-2xl border bg-card p-5 transition-colors hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-4">
-            <Archive className="size-5 shrink-0 text-primary" />
-            <span className="flex-1 text-sm font-bold">Play past Dailies</span>
-            <ArrowRight className="size-4" />
+          <Link href="/daily" className="group flex min-h-22 w-full items-center gap-4 rounded-2xl border bg-card p-5 text-left transition-colors hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-primary"><Archive className="size-6" /></span>
+            <span className="min-w-0 flex-1"><span className="block text-base font-bold tracking-tight">Archive</span><span className="mt-1 block text-xs text-muted-foreground">Past Dailies. Your scores. Pick a day.</span></span>
+            <ArrowRight className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
           </Link>
           <div className="lg:hidden"><ConnectionExample /></div>
           {error && <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive" role="alert">{error}</p>}

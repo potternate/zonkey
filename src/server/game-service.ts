@@ -74,7 +74,8 @@ async function createGame(input: StartGameInput): Promise<{ game: GameRecord; cr
   if (!puzzle) throw new GameError("bad_request", "That puzzle is not available.");
   const { date, number: puzzleNumber, pair } = puzzle;
   const mode = date === today.date ? "daily" : "practice";
-  const existing = await store.findDailyGame(input.playerId, date, mode);
+  const original = await store.findDailyGame(input.playerId, date);
+  const existing = original ?? (mode === "practice" ? await store.findDailyGame(input.playerId, date, mode) : null);
   if (existing) return { game: existing, created: false };
 
   try {

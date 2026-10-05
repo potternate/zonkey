@@ -57,18 +57,32 @@ describe("playable Daily archives", () => {
     await expect(getDailyResults(playerId, archive.id)).rejects.toMatchObject({ code: "not_found" });
   });
 
-  it("routes today's date to the real Daily and past dates to practice after midnight", async () => {
+  it("resumes a previously started Daily from the archive after midnight", async () => {
     const playerId = crypto.randomUUID();
     const daily = await startGame({ playerId, mode: "daily", puzzleDate: "2026-10-04" });
     expect(daily.mode).toBe("daily");
     expect((await startGame({ playerId, mode: "daily" })).id).toBe(daily.id);
     vi.setSystemTime(new Date("2026-10-05T00:00:00Z"));
     const archive = await startGame({ playerId, mode: "daily", puzzleDate: "2026-10-04" });
-    expect(archive.mode).toBe("practice");
-    expect(archive.id).not.toBe(daily.id);
+    expect(archive.mode).toBe("daily");
+    expect(archive.id).toBe(daily.id);
     expect(archive.startPair).toEqual(daily.startPair);
     await submitAnswer({ playerId, gameId: daily.id, roundNumber: 1, answer: "water" });
     expect((await store.getPlayerScores(playerId, "2026-10-05")).dailyStreak.current).toBe(0);
+  });
+
+  it("opens an original completed Daily result instead of allowing a replay", async () => {
+    const playerId = crypto.randomUUID();
+    const daily = await startGame({ playerId, mode: "daily" });
+    await submitAnswer({ playerId, gameId: daily.id, roundNumber: 1, answer: "water" });
+    vi.setSystemTime(new Date("2026-10-05T00:00:00Z"));
+    const create = vi.spyOn(store, "createGame");
+    chooseWord.mockClear();
+    expect(await startGame({ playerId, mode: "daily", puzzleDate: "2026-10-04" })).toMatchObject({
+      id: daily.id, mode: "daily", status: "won",
+    });
+    expect(create).not.toHaveBeenCalled();
+    expect(chooseWord).not.toHaveBeenCalled();
   });
 
   it.each(["", "2026-09-29", "2026-10-05", "2026-02-30", "2026-9-30", "nonsense"])(

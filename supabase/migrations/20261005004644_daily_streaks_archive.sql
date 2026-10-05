@@ -53,6 +53,12 @@ as $$
     from scored
   ), recent as (
     select * from ranked_recent where mode_rank <= 10
+  ), saved_dailies as (
+    select distinct on (puzzle_date) *
+    from owned
+    where mode in ('daily', 'practice') and puzzle_date <= p_daily_date
+      and puzzle_number is not null
+    order by puzzle_date, case when mode = 'daily' then 0 else 1 end, id desc
   )
   select jsonb_build_object(
     'dailyDate', p_daily_date,
@@ -76,6 +82,16 @@ as $$
       (select value from stats where mode = 'archive'),
       '{"played":0,"wins":0,"winRate":0,"bestRounds":null,"averageRounds":null}'::jsonb
     ),
+    'savedDailies', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', id,
+        'date', puzzle_date,
+        'puzzleNumber', puzzle_number,
+        'status', status,
+        'rounds', case when status = 'active' then round_number - 1
+          else coalesce(final_rounds, round_number) end
+      ) order by puzzle_date desc) from saved_dailies
+    ), '[]'::jsonb),
     'recent', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', id,
