@@ -1,6 +1,7 @@
 import "server-only";
 import { MAX_ROUNDS } from "@/lib/game/config";
 import { dailyPuzzle } from "@/lib/game/daily";
+import { dailyArchiveEntry } from "@/lib/game/archive";
 import type { DailyResults } from "@/lib/game/daily-results";
 import { firstGuessBoardKey } from "@/lib/game/first-guesses";
 import { validateAnswer } from "@/lib/game/normalize";
@@ -17,6 +18,7 @@ import { DuplicateDailyGameError, type SubmitAnswerResult } from "./store/types"
 export interface StartGameInput {
   playerId: string;
   mode: GameMode;
+  puzzleDate?: string;
 }
 
 function positiveLimit(name: string, fallback: number): number {
@@ -50,6 +52,9 @@ async function loadOwnedGame(playerId: string, gameId: string): Promise<GameReco
 
 async function createGame(input: StartGameInput): Promise<{ game: GameRecord; created: boolean }> {
   const store = getStore();
+  if (input.puzzleDate !== undefined && input.mode !== "daily") {
+    throw new GameError("bad_request", "Choose Daily to play a dated puzzle.");
+  }
   if (input.mode !== "daily") {
     const pair = randomStartingPair();
     const game = await store.createGame({
@@ -63,14 +68,19 @@ async function createGame(input: StartGameInput): Promise<{ game: GameRecord; cr
     return { game, created: true };
   }
 
-  const { date, number: puzzleNumber, pair } = dailyPuzzle();
-  const existing = await store.findDailyGame(input.playerId, date);
+  const now = new Date();
+  const today = dailyPuzzle(now);
+  const puzzle = input.puzzleDate === undefined ? today : dailyArchiveEntry(input.puzzleDate, now);
+  if (!puzzle) throw new GameError("bad_request", "That puzzle is not available.");
+  const { date, number: puzzleNumber, pair } = puzzle;
+  const mode = date === today.date ? "daily" : "practice";
+  const existing = await store.findDailyGame(input.playerId, date, mode);
   if (existing) return { game: existing, created: false };
 
   try {
     const game = await store.createGame({
       playerId: input.playerId,
-      mode: "daily",
+      mode,
       puzzleDate: date,
       puzzleNumber,
       wordA: pair.a,
@@ -79,13 +89,13 @@ async function createGame(input: StartGameInput): Promise<{ game: GameRecord; cr
     return { game, created: true };
   } catch (err) {
     if (!(err instanceof DuplicateDailyGameError)) throw err;
-    const raced = await store.findDailyGame(input.playerId, date);
+    const raced = await store.findDailyGame(input.playerId, date, mode);
     if (!raced) throw err;
     return { game: raced, created: false };
   }
 }
 
-/** Starts (or resumes today's) game and tries to lock in the first AI answer. */
+/** Starts or resumes a puzzle and tries to lock in the first AI answer. */
 export async function startGame(input: StartGameInput): Promise<GameView> {
   const { game, created } = await createGame(input);
   if (created) {

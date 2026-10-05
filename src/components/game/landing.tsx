@@ -1,10 +1,13 @@
 import Image from "next/image";
-import { ArrowRight, Infinity as InfinityIcon, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Archive, ArrowRight, Infinity as InfinityIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { puzzleNumberForDate } from "@/lib/game/daily";
 import type { GameMode } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
 import { ScoreSummary } from "./scores-screen";
+import { DailyStreakSummary } from "./daily-streak";
+import { ConnectionExample } from "./connection-example";
 
 export function Landing({
   onPlay, onScores, scores, busy, error,
@@ -32,10 +35,8 @@ export function Landing({
             You pick a word. Zonkey&rsquo;s AI picks one too.<br />
             Follow the connections until your words match.
           </p>
-          <div className="mt-7 hidden max-w-80 items-center gap-3 lg:flex" aria-hidden="true">
-            <span className="flex h-16 flex-1 rotate-[-5deg] items-center justify-center rounded-2xl border bg-card text-lg font-bold">pizza</span>
-            <span className="text-xl text-primary">↔</span>
-            <span className="flex h-16 flex-1 rotate-[5deg] items-center justify-center rounded-2xl border bg-card text-lg font-bold">ocean</span>
+          <div className="mt-7 hidden max-w-80 lg:block">
+            <ConnectionExample />
           </div>
           <p className="eyebrow mt-8 hidden text-muted-foreground lg:block">One word at a time. Eight chances to connect.</p>
         </section>
@@ -62,6 +63,12 @@ export function Landing({
             <span className="min-w-0 flex-1"><span className="block text-base font-bold tracking-tight">Unlimited</span><span className="mt-1 block text-xs text-muted-foreground">New words. As many games as you like.</span></span>
             <ArrowRight className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
           </button>
+          <Link href="/daily" className="group flex min-h-16 w-full items-center gap-4 rounded-2xl border bg-card p-5 transition-colors hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-4">
+            <Archive className="size-5 shrink-0 text-primary" />
+            <span className="flex-1 text-sm font-bold">Play past Dailies</span>
+            <ArrowRight className="size-4" />
+          </Link>
+          <div className="lg:hidden"><ConnectionExample /></div>
           {error && <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive" role="alert">{error}</p>}
         </div>
       </div>
@@ -71,7 +78,12 @@ export function Landing({
           <button onClick={onScores} disabled={busy} className="mb-4 flex min-h-11 w-full items-center justify-between rounded-lg text-left focus-visible:outline-2 focus-visible:outline-offset-4">
             <span className="eyebrow">Your daily stats</span><span className="flex items-center gap-1 text-xs text-muted-foreground">All scores <ArrowRight className="size-3" /></span>
           </button>
-          {scores ? <ScoreSummary scores={scores.daily} /> : <p className="text-sm text-muted-foreground">Your scores live here. No account needed.</p>}
+          {scores ? (
+            <div className="space-y-5">
+              <ScoreSummary scores={scores.daily} />
+              <DailyStreakSummary streak={scores.dailyStreak} />
+            </div>
+          ) : <p className="text-sm text-muted-foreground">Your scores live here. No account needed.</p>}
         </div>
       </div>
     </div>

@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/client/api";
 import { copyText, shareText } from "@/lib/client/share";
-import { buildShareText } from "@/lib/game/share";
+import { buildShareText, gameShareUrl } from "@/lib/game/share";
 import type { GameView } from "@/lib/game/types";
-import type { PlayerScores } from "@/lib/game/scores";
+import { scoreMode, type PlayerScores } from "@/lib/game/scores";
 import { Chain } from "./chain";
 import { gameLabel } from "./header";
 import { ScoreSummary } from "./scores-screen";
 import { FirstGuesses } from "./first-guesses";
 import { DailyResultsChart } from "./daily-results";
+import { DailyStreakSummary } from "./daily-streak";
 
 export function ResultScreen({
   game, scores, onPlayAgain, onHome, onScores, busy, error,
@@ -32,6 +34,7 @@ export function ResultScreen({
   const [manualCopy, setManualCopy] = useState<string | null>(null);
   const won = game.status === "won";
   const rounds = game.rounds.length;
+  const mode = scoreMode(game);
 
   async function handleShare() {
     if (sharing) return;
@@ -39,7 +42,7 @@ export function ResultScreen({
     setShareStatus(null);
     setOpenSeparately(false);
     setManualCopy(null);
-    const operation = shareText(buildShareText(game), window.location.origin);
+    const operation = shareText(buildShareText(game), gameShareUrl(game, window.location.origin));
     void api.trackShare(game.id);
     const outcome = await operation;
     setSharing(false);
@@ -53,7 +56,7 @@ export function ResultScreen({
   }
 
   async function handleCopy() {
-    const text = buildShareText(game, window.location.origin);
+    const text = buildShareText(game, gameShareUrl(game, window.location.origin));
     const outcome = await copyText(text);
     setShareStatus(outcome === "copied" ? "Copied to clipboard" : "Select and copy your result below.");
     setManualCopy(outcome === "failed" ? text : null);
@@ -82,8 +85,9 @@ export function ResultScreen({
 
       {scores && (
         <div className="w-full space-y-3">
-          <h3 className="text-xs font-bold tracking-widest">{game.mode === "daily" ? "DAILY" : "UNLIMITED"} SCORES</h3>
-          <ScoreSummary scores={game.mode === "daily" ? scores.daily : scores.unlimited} />
+          <h3 className="text-xs font-bold tracking-widest">{mode.toUpperCase()} SCORES</h3>
+          <ScoreSummary scores={scores[mode]} />
+          {game.mode === "daily" && <DailyStreakSummary streak={scores.dailyStreak} />}
           <Button variant="ghost" onClick={onScores} disabled={busy}>YOUR SCORES</Button>
         </div>
       )}
@@ -107,9 +111,13 @@ export function ResultScreen({
           disabled={busy}
           className="h-14 gap-2 rounded-2xl text-base font-semibold"
         >
-          {busy ? "Getting ready…" : game.mode === "daily" ? "Play unlimited" : "Play again"}<ArrowRight className="size-4" />
+          {busy ? "Getting ready…" : mode === "unlimited" ? "Play again" : "Play unlimited"}<ArrowRight className="size-4" />
         </Button>
         {game.mode === "daily" && <p className="text-xs text-muted-foreground">Daily complete. Next puzzle at midnight UTC.</p>}
+        {mode === "archive" && <p className="text-xs text-muted-foreground">Archive practice is saved separately and doesn&rsquo;t change your Daily streak.</p>}
+        <Link href="/daily" className="inline-flex min-h-11 items-center justify-center rounded-lg text-sm font-semibold text-primary underline underline-offset-4 focus-visible:outline-2">
+          Play another puzzle from the archive
+        </Link>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <p className="min-h-5 text-sm text-muted-foreground" aria-live="polite">
           {shareStatus}

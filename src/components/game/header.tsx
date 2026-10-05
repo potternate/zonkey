@@ -25,5 +25,7 @@ export function GameHeader({ round, maxRounds, label }: { round: number; maxRoun
 }
 
 export function gameLabel(mode: GameMode, puzzleNumber: number | null): string {
-  return mode === "daily" && puzzleNumber !== null ? `DAILY #${puzzleNumber}` : "UNLIMITED";
+  if (mode === "daily" && puzzleNumber !== null) return `DAILY #${puzzleNumber}`;
+  if (mode === "practice" && puzzleNumber !== null) return `ARCHIVE #${puzzleNumber}`;
+  return "UNLIMITED";
 }

@@ -10,7 +10,7 @@ import {
 export const metadata: Metadata = {
   title: "Daily Word Association Puzzle Archive",
   description:
-    "Browse every Zonkey Daily word association puzzle by date and revisit the two starting words shared by all players.",
+    "Play past Zonkey Daily word association puzzles. Browse by date, resume your archive games, and find a new connection.",
   alternates: { canonical: "/daily" },
   openGraph: {
     title: "Zonkey Daily Puzzle Archive",
@@ -78,8 +78,8 @@ export default function DailyArchivePage() {
           Daily puzzle archive
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          Explore the two starting words from every Zonkey Daily. Each date
-          gives every player the same word association puzzle.
+          Pick a date and play its original starting pair. Past puzzles are
+          saved as archive practice, separate from your live Daily streak.
         </p>
       </section>
 

@@ -22,9 +22,9 @@ export class MemoryStore implements GameStore {
   readonly events: (AnalyticsEvent & { createdAt: string })[] = [];
 
   async createGame(input: NewGameInput): Promise<GameRecord> {
-    if (input.mode === "daily" && input.puzzleDate) {
+    if ((input.mode === "daily" || input.mode === "practice") && input.puzzleDate) {
       for (const game of this.games.values()) {
-        if (game.playerId === input.playerId && game.mode === "daily" && game.puzzleDate === input.puzzleDate) {
+        if (game.playerId === input.playerId && game.mode === input.mode && game.puzzleDate === input.puzzleDate) {
           throw new DuplicateDailyGameError();
         }
       }
@@ -54,9 +54,9 @@ export class MemoryStore implements GameStore {
     return game ? { ...game } : null;
   }
 
-  async findDailyGame(playerId: string, puzzleDate: string): Promise<GameRecord | null> {
+  async findDailyGame(playerId: string, puzzleDate: string, mode: "daily" | "practice" = "daily"): Promise<GameRecord | null> {
     for (const g of this.games.values()) {
-      if (g.playerId === playerId && g.mode === "daily" && g.puzzleDate === puzzleDate) return { ...g };
+      if (g.playerId === playerId && g.mode === mode && g.puzzleDate === puzzleDate) return { ...g };
     }
     return null;
   }

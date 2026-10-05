@@ -53,7 +53,7 @@ export interface GameStore {
   /** @throws DuplicateDailyGameError */
   createGame(input: NewGameInput): Promise<GameRecord>;
   getGame(gameId: string): Promise<GameRecord | null>;
-  findDailyGame(playerId: string, puzzleDate: string): Promise<GameRecord | null>;
+  findDailyGame(playerId: string, puzzleDate: string, mode?: "daily" | "practice"): Promise<GameRecord | null>;
   getPlayerScores(playerId: string, dailyDate: string): Promise<PlayerScores>;
   getDailyResults(gameId: string, playerId: string): Promise<DailyResults | null>;
   getFirstGuesses(boardKey: string): Promise<FirstGuessBoard>;

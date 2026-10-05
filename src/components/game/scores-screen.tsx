@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { ModeScores, PlayerScores } from "@/lib/game/scores";
+import { scoreMode, type ModeScores, type PlayerScores } from "@/lib/game/scores";
 import { gameLabel } from "./header";
+import { DailyStreakSummary } from "./daily-streak";
 
 export function ScoreSummary({ scores }: { scores: ModeScores }) {
   const items = [
@@ -35,25 +36,26 @@ export function ScoresScreen({
   onRetry: () => void;
   onResult: (id: string) => void;
 }) {
-  const [mode, setMode] = useState<"daily" | "unlimited">("daily");
+  const [mode, setMode] = useState<"daily" | "unlimited" | "archive">("daily");
   return (
     <section className="flex flex-1 flex-col gap-8 py-6">
       <div className="mt-4 space-y-2 text-center"><p className="eyebrow text-muted-foreground">Every connection counts</p><h1 className="text-4xl font-bold tracking-[-0.06em]">Your scores.</h1></div>
-      <div className="grid grid-cols-2 gap-2 rounded-2xl border bg-muted p-1.5">
-        {(["daily", "unlimited"] as const).map((value) => (
+      <div className="grid grid-cols-3 gap-2 rounded-2xl border bg-muted p-1.5">
+        {(["daily", "unlimited", "archive"] as const).map((value) => (
           <Button key={value} className="h-12 rounded-xl" variant={mode === value ? "default" : "ghost"} aria-pressed={mode === value} onClick={() => setMode(value)}>
-            {value === "daily" ? "Daily" : "Unlimited"}
+            {value === "daily" ? "Daily" : value === "archive" ? "Archive" : "Unlimited"}
           </Button>
         ))}
       </div>
       {scores && (
         <>
           <ScoreSummary scores={scores[mode]} />
+          {mode === "daily" && <DailyStreakSummary streak={scores.dailyStreak} />}
           <p className="text-center text-xs text-muted-foreground">Best and average are rounds to connect. Lower is better.</p>
           <div className="rounded-2xl border bg-card p-5">
             <h2 className="eyebrow mb-3 text-muted-foreground">Recent connections</h2>
             <ul className="divide-y">
-              {scores.recent.filter((game) => (game.mode === "daily") === (mode === "daily")).map((game) => (
+              {scores.recent.filter((game) => scoreMode(game) === mode).map((game) => (
                 <li key={game.id}>
                   <button className="flex min-h-16 w-full items-center justify-between gap-3 rounded-lg px-2 py-3 text-left transition-colors hover:bg-muted focus-visible:outline-2" onClick={() => onResult(game.id)}>
                     <span>

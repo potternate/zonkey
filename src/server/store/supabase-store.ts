@@ -130,12 +130,12 @@ export class SupabaseStore implements GameStore {
     return data ? toGame(data) : null;
   }
 
-  async findDailyGame(playerId: string, puzzleDate: string): Promise<GameRecord | null> {
+  async findDailyGame(playerId: string, puzzleDate: string, mode: "daily" | "practice" = "daily"): Promise<GameRecord | null> {
     const { data, error } = await this.db
       .from("games")
       .select("*")
       .eq("player_id", playerId)
-      .eq("mode", "daily")
+      .eq("mode", mode)
       .eq("puzzle_date", puzzleDate)
       .maybeSingle<GameRow>();
     if (error) throw new Error(`findDailyGame failed: ${error.message}`);
