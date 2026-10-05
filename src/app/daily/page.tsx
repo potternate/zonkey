@@ -64,22 +64,16 @@ export default function DailyArchivePage() {
         </Link>
       </header>
 
-      <section className="py-12 text-center sm:py-16">
-        <p className="eyebrow text-primary">Zonkey archive</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.06em] sm:text-6xl">
-          Pick your day.
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          Explore past Dailies on the calendar. Play a puzzle you missed, see
-          your saved score, or finish one you started. Archive practice is
-          separate from your live Daily streak.
+      <section className="py-8 text-center sm:py-10">
+        <h1 className="text-3xl font-extrabold tracking-[-0.05em] sm:text-4xl">Archive</h1>
+        <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
+          Choose a past Daily to play, resume, or view your score.
         </p>
       </section>
 
       <ArchiveBrowser today={toIsoDate(new Date())} />
 
-      <footer className="mt-14 flex items-center justify-between gap-4 border-t py-6 text-xs text-muted-foreground">
-        <span>Two words. One wild match.</span>
+      <footer className="mt-10 flex justify-center border-t py-6 text-xs text-muted-foreground">
         <Link href="/" className="underline underline-offset-4 hover:text-primary">
           zonkey.io
         </Link>

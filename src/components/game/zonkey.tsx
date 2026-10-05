@@ -196,14 +196,13 @@ export function Zonkey({ children }: { children?: ReactNode }) {
         )}
 
         {game && phase === "result" && (
-          <ResultScreen game={game} scores={scores} onScores={() => setPhase("scores")} onHome={goHome} onPlayAgain={() => start("unlimited")} busy={starting} error={startError} />
+          <ResultScreen game={game} scores={scores} onHome={goHome} onPlayAgain={() => start("unlimited")} busy={starting} error={startError} />
         )}
       </div>
       {phase === "landing" && children}
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-5 text-[11px] text-muted-foreground sm:mt-14">
-        <span>Follow the words. Find your stripe.</span>
+        <span className="font-mono tracking-wide">zonkey.io</span>
         <div className="flex items-center gap-4">
-          <span className="font-mono tracking-wide">zonkey.io</span>
           <a href="https://github.com/potternate/zonkey" target="_blank" rel="noopener noreferrer" aria-label="View Zonkey on GitHub (opens in a new tab)" className="inline-flex min-h-11 items-center gap-1 rounded-sm underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
             GitHub <span aria-hidden="true">↗</span>
           </a>

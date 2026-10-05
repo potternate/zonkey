@@ -1,6 +1,5 @@
-import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { JsonLd } from "./json-ld";
-import { ConnectionExample } from "@/components/game/connection-example";
 
 const questions = [
   {
@@ -83,58 +82,13 @@ const faqPage = {
 export function HomeSeoContent() {
   return (
     <>
-      <section
-        aria-labelledby="how-to-play-zonkey"
-        className="mt-14 border-t py-14 sm:mt-20 sm:py-20"
-      >
-        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-          <div>
-            <p className="eyebrow text-primary">Daily word association game</p>
-            <h2
-              id="how-to-play-zonkey"
-              className="mt-3 text-3xl font-bold tracking-[-0.045em] sm:text-4xl"
-            >
-              How to play Zonkey
-            </h2>
-            <p className="mt-4 max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
-              Find the word that connects two starting ideas. Zonkey&rsquo;s AI
-              locks in its answer before you submit, without seeing your guess.
-              Different answers become the next pair, and a matching idea wins.
-            </p>
-            <div className="mt-5 max-w-sm"><ConnectionExample /></div>
-            <Link
-              href="/daily"
-              className="mt-6 inline-flex min-h-11 items-center rounded-lg font-semibold text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-4"
-            >
-              Browse the Daily puzzle archive
-            </Link>
-          </div>
-          <ol className="grid gap-4 sm:grid-cols-3">
-            {[
-              ["1", "Connect the pair", "Enter one common word that links both starting words."],
-              ["2", "Reveal together", "See your answer and the AI answer at the same time."],
-              ["3", "Find the match", "Follow each new pair and connect within eight turns."],
-            ].map(([number, title, copy]) => (
-              <li key={number} className="rounded-2xl border bg-card p-5">
-                <span className="eyebrow text-primary">{number.padStart(2, "0")}</span>
-                <h3 className="mt-3 font-bold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section aria-labelledby="zonkey-faq" className="border-t py-14 sm:py-20">
-        <div className="mx-auto max-w-3xl">
-          <p className="eyebrow text-center text-primary">Questions, connected</p>
-          <h2
-            id="zonkey-faq"
-            className="mt-3 text-center text-3xl font-bold tracking-[-0.045em]"
-          >
-            Zonkey FAQ
-          </h2>
-          <div className="mt-8 divide-y rounded-2xl border bg-card px-5 sm:px-7">
+      <section aria-labelledby="zonkey-faq" className="mx-auto mt-10 w-full max-w-3xl border-y">
+        <details className="group/faq">
+          <summary className="flex min-h-14 list-none items-center justify-between gap-4 rounded-sm py-3 font-semibold marker:hidden focus-visible:outline-2 focus-visible:outline-offset-2">
+            <span id="zonkey-faq">Zonkey FAQ</span>
+            <ChevronDown className="size-4 text-muted-foreground transition-transform group-open/faq:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="divide-y border-t pb-2">
             {questions.map(({ question, answer }) => (
               <details key={question} className="group py-5">
                 <summary className="flex min-h-11 list-none items-center justify-between gap-4 font-semibold marker:hidden">
@@ -152,7 +106,7 @@ export function HomeSeoContent() {
               </details>
             ))}
           </div>
-        </div>
+        </details>
       </section>
 
       <JsonLd data={videoGame} />
