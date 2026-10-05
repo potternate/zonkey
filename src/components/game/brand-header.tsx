@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef } from "react";
 import { ArrowLeft, ChartNoAxesColumn, CircleHelp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConnectionExample } from "./connection-example";
 
 export function BrandHeader({
   onHome, onScores, home, disabled,
@@ -48,6 +49,10 @@ export function BrandHeader({
           <li><span className="eyebrow mb-1 block text-primary">02 · Find your match</span>Different answers become your next two words. Match to win in eight turns or fewer. From turn two, synonyms can connect too.</li>
           <li><span className="eyebrow mb-1 block text-primary">03 · Keep it wild</span>Daily gives everyone one shared pair. Unlimited gives you a fresh pair whenever you want.</li>
         </ol>
+        <div className="mt-5"><ConnectionExample /></div>
+        <p className="mt-4 text-xs leading-6 text-muted-foreground">
+          A zonkey is a donkey–zebra hybrid. Finish each Daily on its UTC day to grow your streak, or play past puzzles in the archive as practice.
+        </p>
         <Button className="mt-7 h-12 w-full rounded-xl" onClick={() => instructions.current?.close()}>Got it. Let&rsquo;s connect.</Button>
       </dialog>
     </>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { JsonLd } from "./json-ld";
+import { ConnectionExample } from "@/components/game/connection-example";
 
 const questions = [
   {
@@ -10,7 +11,7 @@ const questions = [
   {
     question: "How do you play Zonkey?",
     answer:
-      "Start with two words, enter one word that links them, and reveal the AI's answer. If the answers differ, they become the next pair. Connect in eight turns or fewer to win.",
+      "Start with two words, enter one word that links them, and reveal the AI's answer. For example, donkey and zebra can connect with Zonkey, a donkey–zebra hybrid. If you and the AI both pick Zonkey, you win. Different answers become the next pair. Connect in eight turns or fewer.",
   },
   {
     question: "Is the Daily puzzle the same for everyone?",
@@ -20,7 +21,17 @@ const questions = [
   {
     question: "Can I play more than once a day?",
     answer:
-      "Yes. Daily is one shared puzzle each day, while Unlimited gives you as many random word association games as you want.",
+      "Yes. Daily is one shared puzzle each day, while Unlimited gives you as many random word association games as you want. You can also play past Dailies in the archive as practice.",
+  },
+  {
+    question: "How do Daily streaks work?",
+    answer:
+      "Finish a Daily before midnight UTC on its original day to add to your streak. Wins and losses both count. Yesterday's streak stays active while you have time to finish today's puzzle. Missing a day resets your current streak, but your best streak is saved. Archive practice does not change your streak.",
+  },
+  {
+    question: "How do I play past Daily puzzles?",
+    answer:
+      "Choose Archive on the home page to open a calendar and a list of past Dailies. Play a date you haven't played, view your saved score for a completed puzzle, or resume an unfinished game. Scores stay with your anonymous identity in the same browser. Archive practice does not change your Daily streak.",
   },
   {
     question: "Is Zonkey free, and do I need an account?",
@@ -90,6 +101,7 @@ export function HomeSeoContent() {
               locks in its answer before you submit, without seeing your guess.
               Different answers become the next pair, and a matching idea wins.
             </p>
+            <div className="mt-5 max-w-sm"><ConnectionExample /></div>
             <Link
               href="/daily"
               className="mt-6 inline-flex min-h-11 items-center rounded-lg font-semibold text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-4"

@@ -50,6 +50,13 @@ export function Zonkey({ children }: { children?: ReactNode }) {
     return () => window.removeEventListener("focus", refreshScores);
   }, [refreshScores]);
 
+  useEffect(() => {
+    const midnight = new Date();
+    midnight.setUTCHours(24, 0, 1, 0);
+    const timer = window.setTimeout(() => void refreshScores(), midnight.getTime() - Date.now());
+    return () => window.clearTimeout(timer);
+  }, [refreshScores, scores?.dailyDate]);
+
   const ensureReady = useCallback(async (g: GameView) => {
     if (g.status !== "active" || !g.current || g.current.ready) return;
     const key = `${g.id}:${g.current.number}`;
@@ -89,17 +96,12 @@ export function Zonkey({ children }: { children?: ReactNode }) {
     }
   }, [showGame]);
 
-  useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("game");
-    if (id) void openGame(id);
-  }, [openGame]);
-
   const start = useCallback(
-    async (mode: GameMode) => {
+    async (mode: GameMode, puzzleDate?: string) => {
       setStarting(true);
       setStartError(null);
       try {
-        const { game: g } = await api.startGame(mode);
+        const { game: g } = await api.startGame(mode, puzzleDate);
         setReveal(null);
         showGame(g);
       } catch (err) {
@@ -110,6 +112,14 @@ export function Zonkey({ children }: { children?: ReactNode }) {
     },
     [showGame],
   );
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("game");
+    const date = params.get("daily");
+    if (id) void openGame(id);
+    else if (date !== null) void start("daily", date);
+  }, [openGame, start]);
 
   const submit = useCallback(
     async (answer: string) => {

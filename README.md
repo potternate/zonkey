@@ -8,6 +8,12 @@ You and the AI each pick a word connecting two endpoints. Different words become
 
 Choose **Daily** for one free shared puzzle each UTC day, or **Unlimited** for as many random starting pairs as you want. The pool has 1,365 unique starter words and 6,924 distinct pairs for both modes. **Your Scores** keeps Daily and Unlimited results separate, with games played, win percentage, best round count, average winning rounds, and recent results.
 
+Daily streaks count consecutive UTC days where the player finishes that day's puzzle before midnight. Wins and losses both count. A streak ending yesterday remains current until today's deadline; missing a day resets the current streak while preserving the best. Existing on-time completions count automatically. Home, Daily results, and Daily scores show both current and best streaks.
+
+**Archive** is the third mode beside Daily and Unlimited. It opens a month calendar with a list of that month's past puzzles underneath. Unplayed dates can be played; completed dates show the saved score and reopen the result; unfinished dates resume their saved game. Original Daily results appear alongside archive attempts, including games older than the recent-scores list.
+
+Unplayed past puzzles use `practice` mode with a puzzle date and number, with separate Archive scores. They do not add to Daily streaks or Daily distributions. If a player already started that date's original Daily, the archive reopens that game instead of allowing a new attempt. Existing random `practice` games without a puzzle number remain in Unlimited scores.
+
 After finishing a Daily, see how many players connected in each of 1–8 turns or didn't connect, with your result highlighted. “You did better than X% of players” compares your outcome with other completed games for the same puzzle date: fewer turns beats more turns, any win beats a loss, and ties aren't beaten. Your own game is included in the chart but excluded from your comparison. The percentage rounds down; the first finisher sees a waiting message instead. Refresh to include later completions.
 
 ## Play
@@ -20,7 +26,7 @@ Vercel creates a preview for each pull request; the deployment link appears on t
 
 The landing page includes server-rendered how-to and FAQ content, with matching FAQ and VideoGame JSON-LD. Keyword-focused titles, descriptions, canonical URLs, and the zebra Open Graph image use `https://zonkey.io`.
 
-`/daily` links to every published puzzle date from September 30, 2026 through the current UTC day. Each `/daily/YYYY-MM-DD` page shows its puzzle number and starting pair without any player guesses or AI answers. These are archive reference pages; the play button opens today's game. Invalid, pre-launch, and future dates return 404.
+`/daily` provides the Archive calendar, with past dates available from September 30, 2026. Month navigation shows older puzzles and the current day's puzzle stays in Daily mode. Each `/daily/YYYY-MM-DD` page shows its puzzle number and starting pair without any player guesses or AI answers. The play button opens `/?daily=YYYY-MM-DD` to start or resume that puzzle, or view an existing result. Today's date uses the live Daily; unplayed earlier dates use archive practice. The server rejects invalid, pre-launch, and future play dates; the corresponding archive pages return 404.
 
 `/sitemap.xml` lists the home page, archive, and published dates. The archive and sitemap render on request so each new UTC date appears without a rebuild. `/robots.txt` allows public pages and excludes API routes.
 
@@ -73,11 +79,13 @@ See `.env.example`. All variables are server-only.
 
 For existing deployments, apply `20261004220234_daily_results.sql` before deploying the Daily results feature. It adds an index and the server-only `daily_results` aggregate RPC; existing completed games count immediately, without a backfill. The API and RPC both require the requesting player's own Daily to be complete, and the client only fetches results on the finished Daily screen. Unlimited, active games, and other puzzle dates aren't included.
 
+Apply `20261005004644_daily_streaks_archive.sql` before deploying Daily streaks and playable archives. It updates the server-only `player_scores` RPC with streaks, separate Archive stats, and complete dated game history for the calendar, and adds a unique archive attempt per player/date. History includes completed and active games, exposes no answers, and prefers the original Daily if both modes exist for a date. Existing random practice games are unaffected. This migration is compatible with the previous app version.
+
 The domain is the production identity; adding it to metadata does not deploy or configure DNS. Native sharing uses the current site's origin so development preview links remain playable.
 
 ## Design
 
-The supplied zebra mascot anchors Zonkey's dark charcoal surfaces, zebra stripe texture, bold typography, and lime accents. Dark mode is rendered from the first page load, including native controls and the mobile browser theme. Daily stays the primary action; Unlimited and saved scores are one tap away. The same palette carries through gameplay, reveals, result charts, scores, instructions, and social preview artwork. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
+The supplied zebra mascot anchors Zonkey's dark charcoal surfaces, zebra stripe texture, bold typography, and lime accents. Dark mode is rendered from the first page load, including native controls and the mobile browser theme. Daily stays the primary action; Unlimited, Archive, and saved scores are one tap away. The same palette carries through gameplay, reveals, result charts, scores, instructions, and social preview artwork. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
 
 Inspiration: [21st.dev Minimal Button](https://21st.dev/@radiumcoders/components/minimal-button). The styling uses the existing Tailwind/shadcn stack without new dependencies.
 
@@ -94,7 +102,7 @@ Returning players' anonymous IDs are copied to `zonkey:player-id` from the legac
 
 The client never receives the current round's AI answer, and the server owns round number, game state, canonical words and win condition. If AI generation or judging fails, the round stays unanswered, no attempt is counted, and the player can retry.
 
-Daily puzzle: `puzzle # = days since 2026-09-30 + 1`, so October 1, 2026 is #2 and October 2 is #3. The pair rotation stays anchored to October 1 using `src/lib/game/pairs.ts`. The original 32 pairs remain at the start of the expanded rotation, and puzzle #1 keeps its original pair, so existing shared boards do not move. Daily advances deterministically through the full pool while Unlimited samples the same pool randomly. Apply `20261001173953_daily_puzzle_numbers.sql` to update saved Daily game numbers and score history. The server's UTC date controls the puzzle for everyone. Client-supplied dates are ignored. One daily game per anonymous browser identity per date; a completed puzzle opens its saved result. Clearing browser identity or using a different browser creates a new anonymous player.
+Daily puzzle: `puzzle # = days since 2026-09-30 + 1`, so October 1, 2026 is #2 and October 2 is #3. The pair rotation stays anchored to October 1 using `src/lib/game/pairs.ts`. The original 32 pairs remain at the start of the expanded rotation, and puzzle #1 keeps its original pair, so existing shared boards do not move. Daily advances deterministically through the full pool while Unlimited samples the same pool randomly. Apply `20261001173953_daily_puzzle_numbers.sql` to update saved Daily game numbers and score history. The server's UTC date controls the live Daily for everyone. A requested published past date opens archive practice if unplayed, otherwise the original saved game. One attempt per anonymous browser identity per date; a completed puzzle opens its saved result. Clearing browser identity or using a different browser creates a new anonymous player.
 
 First-round guesses are corrected to single canonical words by an LLM. Equivalent existing board words reuse the existing entry. Every new accepted first guess starts at 1; matching canonical guesses from other players increment that count. Daily boards are grouped by puzzle date, Unlimited boards by starting pair. Counts are updated in the submission transaction so concurrent retries cannot count twice. Existing first-round submissions are backfilled by the migration. Boards are only sent after the player has submitted their first guess.
 
@@ -104,14 +112,14 @@ Supabase atomically enforces hourly AI request quotas before generation or judgi
 
 First-guess writes check the board's attempt count while holding a transaction-scoped board lock. If another player commits during judging, the server rejudges against the updated vocabulary, up to three times, before asking the player to retry. Stale judgments never change the round or count.
 
-Sharing calls `navigator.share({ title, text })` directly from the tap, before analytics. The result and link are one text item for messaging apps; clipboard and manual copy use the same message. Gray/white square pairs mark different guesses and green pairs mark a connection, including semantic wins. Starting words and all guesses are hidden:
+Sharing calls `navigator.share({ title, text })` directly from the tap, before analytics. The result and link are one text item for messaging apps; clipboard and manual copy use the same message. Daily and Archive links preserve the puzzle date, including when sharing an original Daily result from the calendar. Gray/white square pairs mark different guesses and green pairs mark a connection, including semantic wins. Starting words and all guesses are hidden:
 
 ```text
 Zonkey #2
 Connected in 2/8 🦓
 
 ⬜⬜ 🟩🟩
-https://zonkey.io
+https://zonkey.io/?daily=2026-10-01
 ```
 
 On HTTPS Safari this requests the iPhone's native share sheet. If a containing iframe blocks Web Share, the result screen offers **Open game to share** in a separate tab. Unsupported browsers fall back to clipboard; **Copy result** is also available, with selectable text if clipboard access is denied. Cancelling the sheet is not treated as an error. Physical iOS sharing still needs verification on an iPhone.

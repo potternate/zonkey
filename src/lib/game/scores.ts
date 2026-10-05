@@ -1,5 +1,31 @@
 import type { GameMode, GameStatus } from "./types";
 import type { GameRecord } from "./view";
+import { toIsoDate } from "./daily";
+
+export interface DailyStreak {
+  current: number;
+  best: number;
+}
+
+export function dailyStreak(games: GameRecord[], dailyDate: string): DailyStreak {
+  const dates = [...new Set(games.filter((game) =>
+    game.mode === "daily" && game.status !== "active" && game.puzzleDate !== null &&
+    game.completedAt !== null && toIsoDate(new Date(game.completedAt)) === game.puzzleDate &&
+    game.puzzleDate <= dailyDate,
+  ).map((game) => game.puzzleDate!))].sort();
+  const dayMs = 86_400_000;
+  let run = 0;
+  let best = 0;
+  let previous = 0;
+  for (const date of dates) {
+    const ms = Date.parse(`${date}T00:00:00Z`);
+    run = ms - previous === dayMs ? run + 1 : 1;
+    best = Math.max(best, run);
+    previous = ms;
+  }
+  const today = Date.parse(`${dailyDate}T00:00:00Z`);
+  return { current: dates.length && today - previous <= dayMs ? run : 0, best };
+}
 
 export interface ModeScores {
   played: number;
@@ -18,12 +44,49 @@ export interface ScoreEntry {
   completedAt: string;
 }
 
+export interface SavedDailyEntry {
+  id: string;
+  date: string;
+  puzzleNumber: number;
+  status: GameStatus;
+  rounds: number;
+}
+
+export function savedDailies(games: GameRecord[], dailyDate: string): SavedDailyEntry[] {
+  const dated = games.filter((game) =>
+    (game.mode === "daily" || game.mode === "practice") &&
+    game.puzzleDate !== null && game.puzzleNumber !== null && game.puzzleDate <= dailyDate,
+  ).sort((a, b) => Number(a.mode !== "daily") - Number(b.mode !== "daily") || b.id.localeCompare(a.id));
+  const byDate = new Map<string, SavedDailyEntry>();
+  for (const game of dated) {
+    const { puzzleDate, puzzleNumber } = game;
+    if (puzzleDate !== null && puzzleNumber !== null && !byDate.has(puzzleDate)) {
+      byDate.set(puzzleDate, {
+        id: game.id,
+        date: puzzleDate,
+        puzzleNumber,
+        status: game.status,
+        rounds: game.status === "active" ? game.roundNumber - 1 : game.finalRounds ?? game.roundNumber,
+      });
+    }
+  }
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
+}
+
 export interface PlayerScores {
   dailyDate: string;
   dailyGame: { id: string; status: GameStatus } | null;
+  dailyStreak: DailyStreak;
   daily: ModeScores;
   unlimited: ModeScores;
+  archive: ModeScores;
+  savedDailies: SavedDailyEntry[];
   recent: ScoreEntry[];
+}
+
+export function scoreMode(game: { mode: GameMode; puzzleNumber: number | null }): "daily" | "unlimited" | "archive" {
+  if (game.mode === "daily") return "daily";
+  return game.mode === "practice" && game.puzzleNumber !== null ? "archive" : "unlimited";
 }
 
 function modeScores(games: GameRecord[]): ModeScores {
@@ -41,9 +104,9 @@ function modeScores(games: GameRecord[]): ModeScores {
 export function playerScores(games: GameRecord[], dailyDate: string): PlayerScores {
   const completed = games.filter((game) => game.status !== "active" && game.completedAt !== null);
   const dailyGame = games.find((game) => game.mode === "daily" && game.puzzleDate === dailyDate);
-  const recentGames = (["daily", "unlimited"] as const).flatMap((mode) =>
+  const recentGames = (["daily", "unlimited", "archive"] as const).flatMap((mode) =>
     completed
-      .filter((game) => (game.mode === "daily" ? "daily" : "unlimited") === mode)
+      .filter((game) => scoreMode(game) === mode)
       .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? "") || b.id.localeCompare(a.id))
       .slice(0, 10),
   );
@@ -60,8 +123,11 @@ export function playerScores(games: GameRecord[], dailyDate: string): PlayerScor
   return {
     dailyDate,
     dailyGame: dailyGame ? { id: dailyGame.id, status: dailyGame.status } : null,
+    dailyStreak: dailyStreak(games, dailyDate),
     daily: modeScores(completed.filter((game) => game.mode === "daily")),
-    unlimited: modeScores(completed.filter((game) => game.mode !== "daily")),
+    unlimited: modeScores(completed.filter((game) => scoreMode(game) === "unlimited")),
+    archive: modeScores(completed.filter((game) => scoreMode(game) === "archive")),
+    savedDailies: savedDailies(games, dailyDate),
     recent,
   };
 }

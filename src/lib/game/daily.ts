@@ -17,6 +17,10 @@ export function puzzleNumberForDate(date: string): number {
   return Math.round((dateToUtcMs(date) - dateToUtcMs(DAILY_EPOCH)) / DAY_MS) + 1;
 }
 
+export function dateForPuzzleNumber(puzzleNumber: number): string {
+  return toIsoDate(new Date(dateToUtcMs(DAILY_EPOCH) + (puzzleNumber - 1) * DAY_MS));
+}
+
 export function pairForPuzzle(puzzleNumber: number): StartingPair {
   const index = puzzleNumber - puzzleNumberForDate(DAILY_PAIR_EPOCH);
   if (index < 0) {

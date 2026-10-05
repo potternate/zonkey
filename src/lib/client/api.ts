@@ -32,8 +32,8 @@ async function request<T>(path: string, init?: { method?: string; body?: unknown
 
 export const api = {
   getScores: () => request<{ scores: PlayerScores }>("/api/scores"),
-  startGame: (mode: GameMode) =>
-    request<{ game: GameView }>("/api/games", { method: "POST", body: { mode } }),
+  startGame: (mode: GameMode, puzzleDate?: string) =>
+    request<{ game: GameView }>("/api/games", { method: "POST", body: { mode, puzzleDate } }),
   getGame: (id: string) => request<{ game: GameView }>(`/api/games/${id}`),
   getDailyResults: (id: string) => request<{ results: DailyResults }>(`/api/games/${id}/daily-results`),
   prepare: (id: string) => request<{ game: GameView }>(`/api/games/${id}/prepare`, { method: "POST" }),

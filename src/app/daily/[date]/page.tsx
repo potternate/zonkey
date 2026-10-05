@@ -135,11 +135,14 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
           next pair, and matching ideas connect in eight turns or fewer.
         </p>
         <Link
-          href="/"
+          href={`/?daily=${date}`}
           className="mx-auto mt-8 inline-flex min-h-14 items-center justify-center rounded-xl bg-primary px-6 font-bold text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-          Play today&rsquo;s free Daily
+          Play Daily #{entry.number}
         </Link>
+        <p className="mt-4 text-xs leading-6 text-muted-foreground">
+          Past puzzles are saved as archive practice. Your Daily streak counts puzzles finished on their original UTC day.
+        </p>
       </article>
 
       <nav

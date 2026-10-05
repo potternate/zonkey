@@ -15,6 +15,33 @@ export interface DailyArchiveEntry {
   pair: StartingPair;
 }
 
+export interface ArchiveCalendarMonth {
+  label: string;
+  previous: string;
+  next: string;
+  days: (string | null)[];
+}
+
+export function archiveCalendarMonth(month: string): ArchiveCalendarMonth | null {
+  const ms = parseDate(`${month}-01`);
+  if (ms === null) return null;
+  const first = new Date(ms);
+  const year = first.getUTCFullYear();
+  const index = first.getUTCMonth();
+  const count = new Date(Date.UTC(year, index + 1, 0)).getUTCDate();
+  const days: (string | null)[] = Array.from({ length: first.getUTCDay() }, () => null);
+  for (let day = 1; day <= count; day++) {
+    days.push(`${month}-${String(day).padStart(2, "0")}`);
+  }
+  while (days.length % 7 !== 0) days.push(null);
+  return {
+    label: new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(first),
+    previous: toIsoDate(new Date(Date.UTC(year, index - 1, 1))).slice(0, 7),
+    next: toIsoDate(new Date(Date.UTC(year, index + 1, 1))).slice(0, 7),
+    days,
+  };
+}
+
 function parseDate(date: string): number | null {
   if (!DATE_RE.test(date)) return null;
   const ms = Date.parse(`${date}T00:00:00Z`);
