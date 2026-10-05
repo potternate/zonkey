@@ -26,7 +26,7 @@ function positiveLimit(name: string, fallback: number): number {
   return Number.isSafeInteger(value) && value > 0 ? value : fallback;
 }
 
-async function assertAiQuota(playerId: string): Promise<void> {
+export async function assertAiQuota(playerId: string): Promise<void> {
   const allowed = await getStore().consumeAiQuota(
     playerId,
     positiveLimit("AI_REQUESTS_PER_PLAYER_HOUR", 120),

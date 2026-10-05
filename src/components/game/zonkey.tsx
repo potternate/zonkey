@@ -13,8 +13,9 @@ import { RevealScreen } from "./reveal-screen";
 import { RoundScreen } from "./round-screen";
 import { ScoresScreen } from "./scores-screen";
 import { BrandHeader } from "./brand-header";
+import { DailyGame } from "./daily-game";
 
-type Phase = "landing" | "play" | "reveal" | "result" | "scores";
+type Phase = "landing" | "play" | "reveal" | "result" | "scores" | "daily";
 
 function messageOf(err: unknown): string {
   return err instanceof ApiError ? err.message : "Something went wrong.";
@@ -23,6 +24,7 @@ function messageOf(err: unknown): string {
 export function Zonkey({ children }: { children?: ReactNode }) {
   const [phase, setPhase] = useState<Phase>("landing");
   const [game, setGame] = useState<GameView | null>(null);
+  const [dailyDate, setDailyDate] = useState<string | undefined>();
   const [reveal, setReveal] = useState<Reveal | null>(null);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -98,6 +100,11 @@ export function Zonkey({ children }: { children?: ReactNode }) {
 
   const start = useCallback(
     async (mode: GameMode, puzzleDate?: string) => {
+      if (mode === "daily") {
+        setDailyDate(puzzleDate);
+        setPhase("daily");
+        return;
+      }
       setStarting(true);
       setStartError(null);
       try {
@@ -163,12 +170,13 @@ export function Zonkey({ children }: { children?: ReactNode }) {
     <main className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-10">
       <BrandHeader onHome={goHome} onScores={() => { setPhase("scores"); void refreshScores(); }} home={phase === "landing"} disabled={submitting || starting} />
       <div className={cn("flex w-full flex-1 flex-col", phase !== "landing" && "mx-auto max-w-lg")}>
+        {phase === "daily" && <DailyGame key={dailyDate ?? "today"} date={dailyDate} onHome={goHome} onUnlimited={() => void start("unlimited")} onProgress={refreshScores} />}
         {phase === "landing" && (
           <Landing onPlay={start} onScores={() => setPhase("scores")} scores={scores} busy={starting} error={startError} />
         )}
 
         {phase === "scores" && (
-          <ScoresScreen scores={scores} error={scoresError} onHome={goHome} onRetry={refreshScores} onResult={openGame} />
+          <ScoresScreen scores={scores} error={scoresError} onHome={goHome} onRetry={refreshScores} onResult={openGame} onDailyResult={(date) => void start("daily", date)} />
         )}
 
         {game && (phase === "play" || phase === "reveal") && (

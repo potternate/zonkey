@@ -13,6 +13,8 @@ interface Props {
   gameOver: boolean;
   onContinue: () => void;
   firstGuesses?: FirstGuessBoard;
+  continueLabel?: string;
+  resultText?: string;
 }
 
 function Card({ label, word, matched, delay }: { label: string; word: string; matched: boolean; delay: number }) {
@@ -30,7 +32,7 @@ function Card({ label, word, matched, delay }: { label: string; word: string; ma
   );
 }
 
-export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses }: Props) {
+export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses, continueLabel, resultText }: Props) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses }: Pro
         <Card label="YOU" word={reveal.playerAnswer} matched={reveal.matched} delay={0} />
         <Card label="ZONKEY AI" word={reveal.aiAnswer} matched={reveal.matched} delay={250} />
       </div>
+      {resultText && <p className="text-center text-lg font-semibold tabular-nums">{resultText}</p>}
 
       {reveal.matched && reveal.playerAnswer !== reveal.aiAnswer && (
         <p className="text-center text-sm text-success">Synonyms count as a connection.</p>
@@ -64,7 +67,7 @@ export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses }: Pro
         onClick={onContinue}
         className="animate-in fade-in fill-mode-both h-14 rounded-2xl text-base font-semibold delay-700 duration-500"
       >
-        {gameOver ? "See your result" : "Next connection →"}
+        {continueLabel ?? (gameOver ? "See your result" : "Next connection →")}
       </Button>
       {reveal.roundNumber === 1 && firstGuesses && <FirstGuesses board={firstGuesses} yourWord={reveal.playerAnswer} />}
     </div>

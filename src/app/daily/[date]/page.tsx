@@ -7,6 +7,7 @@ import {
   formatArchiveDate,
 } from "@/lib/game/archive";
 import { JsonLd } from "@/components/seo/json-ld";
+import { dailyPairsForPuzzle } from "@/lib/game/daily-run";
 
 interface DailyPageProps {
   params: Promise<{ date: string }>;
@@ -132,8 +133,16 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
         <p className="mx-auto mt-8 max-w-lg text-sm leading-7 text-muted-foreground">
           Pick one word that connects both endpoints. Zonkey&rsquo;s AI makes
           its own choice before the player submits. Different answers form the
-          next pair, and matching ideas connect in eight turns or fewer.
+          next pair. Play five rounds with five guesses each, earning up to
+          1,000 points per round and 5,000 in total.
         </p>
+        <ol className="mx-auto mt-5 w-full max-w-md divide-y rounded-xl border px-4 text-left text-sm">
+          {dailyPairsForPuzzle(entry.number).map((pair, index) => (
+            <li key={`${pair.a}:${pair.b}`} className="flex min-h-11 justify-between gap-3 py-3">
+              <span className="text-muted-foreground">Round {index + 1}</span><span>{pair.a} + {pair.b}</span>
+            </li>
+          ))}
+        </ol>
         <Link
           href={`/?daily=${date}`}
           className="mx-auto mt-8 inline-flex min-h-14 items-center justify-center rounded-xl bg-primary px-6 font-bold text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-offset-4"

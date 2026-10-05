@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { scoreMode, type ModeScores, type PlayerScores } from "@/lib/game/scores";
 import { gameLabel } from "./header";
 import { DailyStreakSummary } from "./daily-streak";
+import { DailyScores } from "./daily-scores";
 
 export function ScoreSummary({ scores }: { scores: ModeScores }) {
   const items = [
@@ -29,14 +30,17 @@ export function ScoresScreen({
   onHome,
   onRetry,
   onResult,
+  onDailyResult,
 }: {
   scores: PlayerScores | null;
   error: string | null;
   onHome: () => void;
   onRetry: () => void;
   onResult: (id: string) => void;
+  onDailyResult: (date: string) => void;
 }) {
   const [mode, setMode] = useState<"daily" | "unlimited" | "archive">("daily");
+  const fiveRound = scores?.dailyRuns !== undefined && mode !== "unlimited";
   return (
     <section className="flex flex-1 flex-col gap-8 py-6">
       <div className="mt-4 space-y-2 text-center"><p className="eyebrow text-muted-foreground">Every connection counts</p><h1 className="text-4xl font-bold tracking-[-0.06em]">Your scores.</h1></div>
@@ -49,11 +53,12 @@ export function ScoresScreen({
       </div>
       {scores && (
         <>
-          <ScoreSummary scores={scores[mode]} />
+          {fiveRound && <DailyScores history={scores.dailyRuns!.history} mode={mode} onResult={onDailyResult} />}
+          {!fiveRound && <ScoreSummary scores={scores[mode]} />}
           {mode === "daily" && <DailyStreakSummary streak={scores.dailyStreak} />}
-          <p className="text-center text-xs text-muted-foreground">Best and average are rounds to connect. Lower is better.</p>
+          {!fiveRound && <p className="text-center text-xs text-muted-foreground">Best and average are rounds to connect. Lower is better.</p>}
           <div className="rounded-2xl border bg-card p-5">
-            <h2 className="eyebrow mb-3 text-muted-foreground">Recent connections</h2>
+            <h2 className="eyebrow mb-3 text-muted-foreground">{fiveRound ? "Previous format results" : "Recent connections"}</h2>
             <ul className="divide-y">
               {scores.recent.filter((game) => scoreMode(game) === mode).map((game) => (
                 <li key={game.id}>
@@ -69,7 +74,7 @@ export function ScoresScreen({
                 </li>
               ))}
             </ul>
-            {!scores[mode].played && <p className="py-5 text-center text-sm text-muted-foreground">Finish a game to save your first score.</p>}
+            {!scores[mode].played && <p className="py-5 text-center text-sm text-muted-foreground">{fiveRound ? "No previous format results." : "Finish a game to save your first score."}</p>}
           </div>
         </>
       )}

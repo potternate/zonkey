@@ -4,17 +4,25 @@ zonkey.io
 
 **Two words. One wild match.** A mobile-first daily word-convergence game against an AI.
 
-You and the AI each pick a word connecting two endpoints. Different words become the next round's endpoints; matching words win. From round 2 onward, equivalent meanings also connect. Max 8 rounds.
+You and the AI each pick a word connecting two endpoints. Different words become the next guess's endpoints; matching words connect. From guess 2 onward, equivalent meanings also connect.
 
-Choose **Daily** for one free shared puzzle each UTC day, or **Unlimited** for as many random starting pairs as you want. The pool has 1,365 unique starter words and 6,924 distinct pairs for both modes. **Your Scores** keeps Daily and Unlimited results separate, with games played, win percentage, best round count, average winning rounds, and recent results.
+**Daily** has five independent rounds each UTC day, with up to five guesses per round. Connecting on guesses 1–5 earns **1,000 / 800 / 600 / 400 / 200** points; an exhausted round earns **0**. Always continue through all five rounds for a total out of **5,000**. Everyone gets the same five deterministic starting pairs. AI commitments are shared for identical date/round/guess/endpoint states. **Unlimited** keeps eight-turn games with fresh random starting pairs. The catalog has 1,365 words and 6,924 distinct pairs.
 
 Daily streaks count consecutive UTC days where the player finishes that day's puzzle before midnight. Wins and losses both count. A streak ending yesterday remains current until today's deadline; missing a day resets the current streak while preserving the best. Existing on-time completions count automatically. Home, Daily results, and Daily scores show both current and best streaks.
 
 **Archive** is the third mode beside Daily and Unlimited. It opens a month calendar with a list of that month's past puzzles underneath. Unplayed dates can be played; completed dates show the saved score and reopen the result; unfinished dates resume their saved game. Original Daily results appear alongside archive attempts, including games older than the recent-scores list.
 
-Unplayed past puzzles use `practice` mode with a puzzle date and number, with separate Archive scores. They do not add to Daily streaks or Daily distributions. If a player already started that date's original Daily, the archive reopens that game instead of allowing a new attempt. Existing random `practice` games without a puzzle number remain in Unlimited scores.
+Every published date, starting September 30, 2026, is playable in the five-round format. The original first pair and puzzle number are preserved; four additional pairs are deterministic. One five-round run is saved per anonymous player/date and can be resumed. Archive runs do not count in live Daily distributions or streaks. Old one-puzzle games remain accessible as **Previous format results**, separately from the new scores; their unplayed rounds are not assigned invented points.
 
-After finishing a Daily, see how many players connected in each of 1–8 turns or didn't connect, with your result highlighted. “You did better than X% of players” compares your outcome with other completed games for the same puzzle date: fewer turns beats more turns, any win beats a loss, and ties aren't beaten. Your own game is included in the chart but excluded from your comparison. The percentage rounds down; the first finisher sees a waiting message instead. Refresh to include later completions.
+After finishing all five Daily rounds, a curve plots actual player counts at every attainable score (0–5,000 in 200-point steps), with an accessible count table and your score highlighted. It does not fit a synthetic normal distribution. “You did better than X% of players” compares strictly lower scores among other completed live Daily runs for that date. Ties are not beaten; your own run is included in the chart but excluded from the percentile. The percentage rounds down; the first finisher sees a waiting message. Archive, active, and previous format results are excluded.
+
+### Database rollout and backfill
+
+Apply migrations in order, including `20261005040000_five_round_daily.sql`, **before** deploying this app version. The additive migration uses separate tables and RPCs; existing game records and production prompts are unchanged. Only the server's service role can access Daily state, AI commitments, and aggregates. Database row locks and expected round/guess numbers make retries and concurrent submissions safe.
+
+With `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set, run `npm run backfill:daily` for a dry run, then `npm run backfill:daily -- --apply` to seed all published dates. It only inserts missing puzzle definitions and is safe to repeat; it never overwrites a puzzle or changes player results. Future dates are created when first played using the same schedule.
+
+Run `npm run test:db` against local Supabase to test both stores, including the five-round atomic state transitions and database permissions. It uses credentials from the local Docker containers and never prints or persists their signing keys.
 
 ## Play
 
