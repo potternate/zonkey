@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/client/api";
 import { archiveCalendarMonth, dailyArchiveEntry, formatArchiveDate } from "@/lib/game/archive";
@@ -92,7 +92,7 @@ export function ArchiveBrowser({ today }: { today: string }) {
             ) : <span key={date} className={className} aria-label={formatArchiveDate(date)}>{content}</span>;
           })}
         </div>
-        <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">Play an unplayed date. Tap a score to see your result.<br />Resume any puzzle you&rsquo;ve already started.</p>
+        <p className="mt-5 text-center text-xs text-muted-foreground">Tap a day to play, resume, or view your result.</p>
       </section>
 
       {error ? (
@@ -103,31 +103,25 @@ export function ArchiveBrowser({ today }: { today: string }) {
       ) : !scores && <p className="text-center text-sm text-muted-foreground" role="status">Loading your saved games…</p>}
 
       <section aria-labelledby="archive-puzzles">
-        <h2 id="archive-puzzles" className="mb-4 text-lg font-bold tracking-tight">{calendar.label} puzzles</h2>
+        <h2 id="archive-puzzles" className="mb-3 text-sm font-semibold text-muted-foreground">{calendar.label} puzzles</h2>
         {pastDates.length === 0 && <p className="text-sm text-muted-foreground">No past puzzles this month yet. Come back after the next Daily.</p>}
-        <ol className="space-y-3">
+        <ol className="divide-y border-y">
           {pastDates.map((date) => {
             const entry = dailyArchiveEntry(date, new Date(`${dailyDate}T00:00:00Z`));
             if (!entry) return null;
             const game = saved.get(date);
             const label = resultLabel(game);
             return (
-              <li key={date} className="rounded-2xl border bg-card p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <Link href={`/daily/${date}`} className="min-h-11 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4">
-                    <span className="eyebrow text-primary">Daily #{entry.number}</span>
-                    <time dateTime={date} className="mt-1 block text-xs text-muted-foreground">{formatArchiveDate(date)}</time>
-                  </Link>
-                  {game && <span className={cn("rounded-full border px-3 py-1 text-xs font-semibold", game.status === "won" ? "border-success-border bg-success-muted text-success" : "text-muted-foreground")}>{game.status === "active" ? `In progress${game.rounds ? ` · ${game.rounds} turns` : ""}` : `${game.status === "won" ? "Connected" : "Played"} · ${label}`}</span>}
-                </div>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                  <p className="flex items-center gap-3 text-lg font-bold tracking-tight"><span>{entry.pair.a}</span><span className="text-primary">↔</span><span>{entry.pair.b}</span></p>
-                  {ready ? (
-                    <Button asChild variant={game && game.status !== "active" ? "outline" : "default"} className="min-h-11 rounded-xl px-4">
-                      <Link href={puzzleHref(date, game)} aria-label={`${game && game.status !== "active" ? "View result" : label} for Daily #${entry.number}`}>{game && game.status !== "active" ? "View result" : label}<ArrowRight className="size-4" /></Link>
-                    </Button>
-                  ) : <Button disabled className="min-h-11 rounded-xl px-4">Loading…</Button>}
-                </div>
+              <li key={date} className="flex min-h-16 items-center gap-3 py-2">
+                <Link href={`/daily/${date}`} className="min-w-0 flex-1 rounded-sm py-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2">
+                  <span className="block text-sm font-semibold">Daily #{entry.number}</span>
+                  <time dateTime={date} className="mt-0.5 block text-xs text-muted-foreground">{formatArchiveDate(date)}</time>
+                </Link>
+                {ready ? (
+                  <Button asChild variant={game && game.status !== "active" ? "outline" : "default"} className="min-h-10 rounded-xl px-4">
+                    <Link href={puzzleHref(date, game)} aria-label={`${game && game.status !== "active" ? "View result" : label} for Daily #${entry.number}`}>{label}</Link>
+                  </Button>
+                ) : <Button disabled className="min-h-10 rounded-xl px-4">Loading…</Button>}
               </li>
             );
           })}
