@@ -46,8 +46,9 @@ export function BrandHeader({
         </div>
         <ol className="mt-5 space-y-5 text-sm leading-relaxed text-muted-foreground">
           <li><span className="eyebrow mb-1 block text-primary">01 · Follow the words</span>Two starting words. You and Zonkey&rsquo;s AI each choose one word that connects them. Its answer is locked in before you submit.</li>
-          <li><span className="eyebrow mb-1 block text-primary">02 · Find your match</span>Different answers become your next two words. Match to win in eight turns or fewer. From turn two, synonyms can connect too.</li>
-          <li><span className="eyebrow mb-1 block text-primary">03 · Keep it wild</span>Daily gives everyone one shared pair. Unlimited gives you a fresh pair whenever you want.</li>
+          <li><span className="eyebrow mb-1 block text-primary">02 · Find your match</span>Different answers become your next two words. From guess two, synonyms can connect too.</li>
+          <li><span className="eyebrow mb-1 block text-primary">03 · Score your Daily</span>Everyone gets five starting pairs. Each round allows five guesses. Connect on guesses 1–5 to earn 1,000, 800, 600, 400, or 200 points. A missed round scores 0. Finish all five for your total out of 5,000 and player comparison.</li>
+          <li><span className="eyebrow mb-1 block text-primary">04 · Keep it wild</span>Unlimited gives you a fresh pair with eight turns. Archive lets you play past five-round Dailies.</li>
         </ol>
         <div className="mt-5"><ConnectionExample /></div>
         <p className="mt-4 text-xs leading-6 text-muted-foreground">

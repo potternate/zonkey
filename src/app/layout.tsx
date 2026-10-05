@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     template: "%s | Zonkey",
   },
   description:
-    "Play Zonkey, a free daily word association game. Connect two starting words with an AI in eight turns, compare scores, or play unlimited puzzles.",
+    "Play Zonkey, a free daily word association game. Connect with an AI across five rounds, score up to 5,000 points, and compare results or play Unlimited.",
   applicationName: "Zonkey",
   alternates: { canonical: "/" },
   openGraph: {
     title: "Zonkey — Daily Word Association Game",
     description:
-      "Connect two starting words with an AI in eight turns or fewer. Play the free shared Daily or unlimited word association puzzles.",
+      "Five Daily rounds, five guesses each. Connect two words with an AI, score up to 5,000 points, or play Unlimited.",
     siteName: "Zonkey",
     url: "/",
     type: "website",

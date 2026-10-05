@@ -14,7 +14,7 @@ export function Landing({
   busy: boolean;
   error: string | null;
 }) {
-  const daily = scores?.dailyGame;
+  const daily = scores?.dailyRuns ? scores.dailyRuns.history.find((run) => run.date === scores.dailyDate) : scores?.dailyGame;
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
   const puzzleNumber = scores ? puzzleNumberForDate(scores.dailyDate) : null;
   return (
@@ -23,7 +23,7 @@ export function Landing({
         Two words.<br /><span className="text-primary">One wild match.</span>
       </h1>
       <p className="mx-auto mt-4 max-w-80 text-sm leading-6 text-muted-foreground">
-        Pick a word that connects the pair.<br />Match the AI in eight turns.
+        Five daily rounds. Five guesses each.<br />Connect faster to earn up to 5,000 points.
       </p>
       <p className="mt-4 text-sm" aria-label="For example, donkey and zebra connect when you and the AI both choose Zonkey.">
         donkey + zebra <span className="mx-1 text-muted-foreground">→</span> <span className="font-semibold text-primary">Zonkey</span>

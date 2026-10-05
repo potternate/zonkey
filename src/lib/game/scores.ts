@@ -1,6 +1,7 @@
 import type { GameMode, GameStatus } from "./types";
 import type { GameRecord } from "./view";
 import { toIsoDate } from "./daily";
+import type { DailyRunSummary } from "./daily-run";
 
 export interface DailyStreak {
   current: number;
@@ -8,11 +9,16 @@ export interface DailyStreak {
 }
 
 export function dailyStreak(games: GameRecord[], dailyDate: string): DailyStreak {
-  const dates = [...new Set(games.filter((game) =>
+  const dates = games.filter((game) =>
     game.mode === "daily" && game.status !== "active" && game.puzzleDate !== null &&
     game.completedAt !== null && toIsoDate(new Date(game.completedAt)) === game.puzzleDate &&
     game.puzzleDate <= dailyDate,
-  ).map((game) => game.puzzleDate!))].sort();
+  ).map((game) => game.puzzleDate!);
+  return streakForDates(dates, dailyDate);
+}
+
+export function streakForDates(completedDates: string[], dailyDate: string): DailyStreak {
+  const dates = [...new Set(completedDates.filter((date) => date <= dailyDate))].sort();
   const dayMs = 86_400_000;
   let run = 0;
   let best = 0;
@@ -74,6 +80,7 @@ export function savedDailies(games: GameRecord[], dailyDate: string): SavedDaily
 }
 
 export interface PlayerScores {
+  dailyRuns?: DailyRunSummary;
   dailyDate: string;
   dailyGame: { id: string; status: GameStatus } | null;
   dailyStreak: DailyStreak;

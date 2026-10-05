@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:db": "node scripts/test-database.mjs",
+    "backfill:daily": "tsx scripts/backfill-daily.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",
@@ -34,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.27",
     "tailwindcss": "^4",
+    "tsx": "4.20.6",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }

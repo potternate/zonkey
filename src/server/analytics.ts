@@ -8,6 +8,10 @@ export const ANALYTICS_EVENTS = [
   "game_won",
   "game_lost",
   "share_clicked",
+  "daily_started",
+  "daily_guess_submitted",
+  "daily_round_completed",
+  "daily_completed",
 ] as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
