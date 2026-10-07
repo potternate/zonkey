@@ -89,6 +89,32 @@
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+  --brand-mark: var(--foreground);
+  --brand-mark-border: var(--foreground);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #17120e;
+  --foreground: #f1e6d4;
+  --card: #221b15;
+  --primary: #e07a52;
+  --primary-foreground: #17120e;
+  --secondary: #2e251d;
+  --muted: #2e251d;
+  --muted-foreground: #b9a78d;
+  --accent: #3a2f25;
+  --destructive: #ef6b5e;
+  --border: #3d3228;
+  --input: #8a7458;
+  --success: #a3bc80;
+  --success-foreground: #17120e;
+  --success-muted: #232a1b;
+  --success-border: #5d6e45;
+  --chart-3: #c79a63;
+  --chart-4: #e0ae5f;
+  --brand-mark: #0d0a08;
+  --brand-mark-border: var(--border);
 }
 
 @layer base {
@@ -134,8 +160,8 @@
 }
 
 .brand-mark {
-  background: var(--foreground);
-  border-color: var(--foreground);
+  background: var(--brand-mark);
+  border-color: var(--brand-mark-border);
   box-shadow: 0 3px 0 var(--secondary);
 }
 

@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { ArrowLeft, ChartNoAxesColumn, CircleHelp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConnectionExample } from "./connection-example";
+import { ThemeToggle } from "./theme-toggle";
 
 export function BrandHeader({
   onHome, onScores, home, disabled,
@@ -37,6 +38,7 @@ export function BrandHeader({
           <Button variant="ghost" onClick={onScores} disabled={disabled} className="h-11 px-3" aria-label="Your scores">
             <ChartNoAxesColumn className="size-4" /><span className="hidden sm:inline">Your scores</span>
           </Button>
+          <ThemeToggle />
         </nav>
       </header>
       <dialog ref={instructions} aria-labelledby="instructions-title" className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-3xl border bg-card p-6 text-foreground shadow-2xl backdrop:bg-foreground/60 backdrop:backdrop-blur-sm">

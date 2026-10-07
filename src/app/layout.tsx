@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,12 +44,14 @@ export const metadata: Metadata = {
   },
 };
 
+const themeScript = `try{if(localStorage.getItem("${THEME_STORAGE_KEY}")==="light")document.documentElement.classList.remove("dark")}catch(e){}`;
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f5eddf",
-  colorScheme: "light",
+  themeColor: "#17120e",
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({
@@ -57,7 +60,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.variable}>
+    <html lang="en" className={`${geistSans.variable} dark`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );
