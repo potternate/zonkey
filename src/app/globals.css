@@ -143,6 +143,12 @@
   }
 }
 
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+}
+
 .eyebrow {
   font-size: 10px;
   font-weight: 600;
