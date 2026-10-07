@@ -18,44 +18,50 @@ export function Landing({
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
   const puzzleNumber = scores ? puzzleNumberForDate(scores.dailyDate) : null;
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-8 text-center animate-in fade-in duration-500 sm:py-12">
-      <svg viewBox="0 0 360 90" aria-hidden="true" focusable="false" className="mx-auto mb-5 h-20 w-full max-w-xs">
-        <circle cx="272" cy="25" r="21" className="fill-chart-4/65" />
-        <path d="M10 76Q90 12 182 62T350 51L350 90H10Z" className="fill-chart-3/25" />
-        <path d="M10 84Q107 40 220 75T350 66L350 90H10Z" className="fill-primary/20" />
-        <path d="M76 77L72 43H77L80 61L90 48L93 49L81 67L82 77Z" className="fill-success" />
-        <path d="M47 43C47 36 58 32 65 34C70 24 91 28 94 33C108 30 119 39 115 44C100 48 67 49 47 43Z" className="fill-success" />
-        <path d="M10 89Q115 65 204 82T350 78V90H10Z" className="fill-secondary" />
-      </svg>
-      <h1 className="text-[clamp(2.25rem,7vw,3.5rem)] font-bold leading-tight tracking-[-0.045em]">
-        Two words.<br /><span className="text-primary italic">One wild match.</span>
-      </h1>
-      <p className="mx-auto mt-4 max-w-80 text-sm leading-6 text-muted-foreground">
-        Five daily rounds. Five guesses each.<br />Connect faster to earn up to 5,000 points.
-      </p>
-      <p className="mt-4 text-sm" aria-label="For example, donkey and zebra connect when you and the AI both choose Zonkey.">
-        donkey + zebra <span className="mx-1 text-muted-foreground">→</span> <span className="font-semibold text-primary">Zonkey</span>
-      </p>
-      <div className="mt-8 space-y-3">
-        <Button onClick={() => onPlay("daily")} disabled={busy} className="h-14 w-full justify-between rounded-xl px-5 text-base font-bold">
-          {busy ? "Getting ready…" : `${dailyLabel}${puzzleNumber !== null ? ` #${puzzleNumber}` : ""}`}<ArrowRight className="size-5" />
-        </Button>
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={() => onPlay("unlimited")} disabled={busy} className="h-12 rounded-xl">
-            <InfinityIcon className="size-4" />Unlimited
-          </Button>
-          <Button asChild variant="outline" className="h-12 rounded-xl">
-            <Link href="/daily"><Archive className="size-4" />Archive</Link>
-          </Button>
+    <div className="mx-auto grid w-full max-w-5xl flex-1 content-center gap-7 py-8 animate-in fade-in duration-500 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-16 lg:py-20">
+      <div className="text-center lg:text-left">
+        <p className="eyebrow mb-4 text-primary">Your daily word safari</p>
+        <h1 className="text-[clamp(3rem,8vw,5.5rem)] font-bold leading-[0.95] tracking-[-0.06em]">
+          Meet in<br /><span className="text-primary italic">the middle.</span>
+        </h1>
+        <p className="mt-5 text-sm leading-6 text-muted-foreground sm:text-base">
+          Two words. You and an AI. Find the same connection.
+        </p>
+        <div className="relative mt-6 overflow-hidden rounded-2xl border border-primary/15 bg-secondary/50 px-5 py-5 sm:mt-8 sm:py-7">
+          <span aria-hidden="true" className="absolute -right-3 -top-5 size-24 rounded-full bg-chart-4/20" />
+          <p className="relative flex flex-wrap items-center justify-center gap-x-3 gap-y-2 font-heading text-xl sm:text-2xl" aria-label="For example, donkey and zebra connect when you and the AI both choose Zonkey.">
+            donkey <span className="font-sans text-sm text-muted-foreground">+</span> zebra
+            <ArrowRight aria-hidden="true" className="size-4 text-muted-foreground" />
+            <span className="font-bold italic text-primary">Zonkey</span>
+          </p>
         </div>
-        {error && <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive" role="alert">{error}</p>}
       </div>
-      {scores && (
-        <button onClick={onScores} disabled={busy} className="mx-auto mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-4 disabled:opacity-50">
-          <Flame className="size-4 text-primary" aria-hidden="true" />
-          {scores.dailyStreak.current ? `${scores.dailyStreak.current} day streak` : "Start a Daily streak"}
-        </button>
-      )}
+      <div className="mx-auto w-full max-w-md rounded-[2rem] border bg-card p-5 text-center shadow-sm sm:p-7">
+        <div className="mb-5 flex items-center justify-between text-xs text-muted-foreground">
+          <span className="eyebrow text-primary">Daily {puzzleNumber !== null ? `#${puzzleNumber}` : ""}</span>
+          <span>5 rounds · 5 guesses each</span>
+        </div>
+        <div className="space-y-3">
+          <Button onClick={() => onPlay("daily")} disabled={busy} className="h-14 w-full justify-between rounded-xl px-5 text-base font-bold">
+            {busy ? "Getting ready…" : `${dailyLabel}${puzzleNumber !== null ? ` #${puzzleNumber}` : ""}`}<ArrowRight className="size-5" />
+          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button variant="outline" onClick={() => onPlay("unlimited")} disabled={busy} className="h-12 rounded-xl">
+              <InfinityIcon className="size-4" />Unlimited
+            </Button>
+            <Button asChild variant="outline" className="h-12 rounded-xl">
+              <Link href="/daily"><Archive className="size-4" />Archive</Link>
+            </Button>
+          </div>
+          {error && <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive" role="alert">{error}</p>}
+        </div>
+        {scores && (
+          <button onClick={onScores} disabled={busy} className="mx-auto mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-4 disabled:opacity-50">
+            <Flame className="size-4 text-primary" aria-hidden="true" />
+            {scores.dailyStreak.current ? `${scores.dailyStreak.current} day streak` : "Start a Daily streak"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

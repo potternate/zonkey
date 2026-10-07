@@ -43,6 +43,7 @@ export interface DailyStore {
   start(playerId: string, date: string, number: number, pairs: StartingPair[]): Promise<{ run: DailyRunRecord; created: boolean }>;
   get(id: string): Promise<DailyRunRecord | null>;
   cachedAnswer(run: DailyRunRecord): Promise<string | null>;
+  cacheFirstAnswer(run: DailyRunRecord, round: number, answer: string): Promise<void>;
   commitAnswer(position: DailyPosition, answer: string): Promise<void>;
   submit(input: DailySubmission): Promise<RoundView>;
   firstBoard(date: string, round: number): Promise<FirstGuessBoard>;

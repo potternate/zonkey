@@ -95,6 +95,15 @@ export class DailySupabaseStore implements DailyStore {
     return data?.answer ?? null;
   }
 
+  async cacheFirstAnswer(run: DailyRunRecord, round: number, answer: string): Promise<void> {
+    const pair = run.pairs[round - 1];
+    const { error } = await this.db.from("daily_ai_answers").upsert({
+      puzzle_date: run.date, round_number: round, guess_number: 1,
+      word_a: pair.a, word_b: pair.b, answer,
+    }, { onConflict: "puzzle_date,round_number,guess_number,word_a,word_b", ignoreDuplicates: true });
+    if (error) throw new Error(`Daily opening answer cache failed: ${error.message}`);
+  }
+
   async commitAnswer(input: DailyPosition, answer: string): Promise<void> {
     const { data, error } = await this.db.rpc("commit_daily_answer", {
       p_id: input.id, p_player_id: input.playerId, p_round: input.round, p_guess: input.guess, p_answer: answer,

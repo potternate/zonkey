@@ -16,6 +16,6 @@ export const POST = withErrors(async (req: Request) => {
   if (body.mode === "daily" && (!body.puzzleDate || body.puzzleDate === toIsoDate(new Date()))) {
     throw new GameError("conflict", "Daily now has five rounds. Refresh Zonkey to play.");
   }
-  const game = await startGame({ playerId, mode: body.mode, puzzleDate: body.puzzleDate });
+  const game = await startGame({ playerId, mode: body.mode, puzzleDate: body.puzzleDate }, false);
   return NextResponse.json({ game });
 });

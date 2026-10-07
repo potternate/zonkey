@@ -57,6 +57,12 @@ export class DailyMemoryStore implements DailyStore {
     return this.answers.get(this.answerKey(run)) ?? null;
   }
 
+  async cacheFirstAnswer(run: DailyRunRecord, round: number, answer: string): Promise<void> {
+    const pair = run.pairs[round - 1];
+    const key = JSON.stringify([run.date, round, 1, pair.a, pair.b]);
+    if (!this.answers.has(key)) this.answers.set(key, answer);
+  }
+
   async commitAnswer(position: DailyPosition, answer: string): Promise<void> {
     const { run, round } = this.position(position);
     const key = this.answerKey(run);

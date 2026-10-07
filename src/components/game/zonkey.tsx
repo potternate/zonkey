@@ -68,12 +68,15 @@ export function Zonkey({ children }: { children?: ReactNode }) {
     setPrepareError(null);
     try {
       const { game: next } = await api.prepare(g.id);
-      setGame((previous) => previous?.id === next.id ? next : previous);
+      setGame((previous) => previous?.id === next.id && previous.status === "active"
+        && previous.current?.number === g.current?.number && next.current?.number === g.current?.number ? next : previous);
     } catch (err) {
-      setPrepareError(messageOf(err));
+      if (preparingFor.current === key) setPrepareError(messageOf(err));
     } finally {
-      preparingFor.current = null;
-      setPreparing(false);
+      if (preparingFor.current === key) {
+        preparingFor.current = null;
+        setPreparing(false);
+      }
     }
   }, []);
 

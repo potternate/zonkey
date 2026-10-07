@@ -28,6 +28,9 @@ export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
   const [preparing, setPreparing] = useState(false);
   const [loadRetry, setLoadRetry] = useState(0);
   const [prepareRetry, setPrepareRetry] = useState(0);
+  const runId = run?.id;
+  const roundNumber = run?.current?.round;
+  const guessNumber = run?.current?.guess;
 
   useEffect(() => {
     let cancelled = false;
@@ -44,19 +47,24 @@ export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
   }, [run?.status, onProgress]);
 
   useEffect(() => {
-    if (!run?.current || run.current.ready) return;
+    if (!runId || !roundNumber || !guessNumber) {
+      setPreparing(false);
+      return;
+    }
     let cancelled = false;
     setPreparing(true);
     setPrepareError(null);
-    api.prepareDaily(run.id).then(({ run: next }) => {
-      if (!cancelled) setRun(next);
+    api.prepareDaily(runId).then(({ run: next }) => {
+      if (!cancelled) setRun((previous) => previous?.id === next.id
+        && previous.current?.round === roundNumber && previous.current?.guess === guessNumber
+        && next.current?.round === roundNumber && next.current?.guess === guessNumber ? next : previous);
     }).catch((err: unknown) => {
       if (!cancelled) setPrepareError(messageOf(err));
     }).finally(() => {
       if (!cancelled) setPreparing(false);
     });
     return () => { cancelled = true; };
-  }, [run, prepareRetry]);
+  }, [runId, roundNumber, guessNumber, prepareRetry]);
 
   async function submit(answer: string) {
     if (!run?.current || submitting) return;
@@ -90,11 +98,10 @@ export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
   const finishedRound = run.rounds[displayRound - 1];
   return (
     <>
-      <GameHeader round={displayRound} maxRounds={5} label={`${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} />
-      <p className="mt-4 text-center text-sm font-semibold tabular-nums">{run.score.toLocaleString("en-US")} / 5,000 points</p>
+      <GameHeader round={displayRound} maxRounds={5} label={`${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} summary={`${run.score.toLocaleString("en-US")} / 5,000 pts`} />
       {!reveal && run.current && (
         <>
-          <p className="mt-2 text-center text-xs text-muted-foreground">Guess {run.current.guess} / 5 · {DAILY_POINTS[run.current.guess - 1]} points available</p>
+          <p className="mt-3 text-xs text-muted-foreground">Guess {run.current.guess} / 5 · {DAILY_POINTS[run.current.guess - 1]} pts</p>
           <RoundScreen key={`${run.current.round}:${run.current.guess}`} round={{
             number: run.current.guess, wordA: run.current.wordA, wordB: run.current.wordB, ready: run.current.ready,
           }} submitting={submitting} preparing={preparing} prepareError={prepareError} submitError={submitError}

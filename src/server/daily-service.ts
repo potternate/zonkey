@@ -7,6 +7,7 @@ import type { FirstGuessBoard } from "@/lib/game/first-guesses";
 import { validateAnswer } from "@/lib/game/normalize";
 import type { Reveal } from "@/lib/game/types";
 import { getAiPlayer, getAnswerJudge } from "./ai";
+import { pendingAnswer } from "./ai/pending-answer";
 import { track } from "./analytics";
 import { GameError } from "./errors";
 import { assertAiQuota } from "./game-service";
@@ -45,6 +46,36 @@ export async function startDaily(playerId: string, date = toIsoDate(new Date()))
   return toDailyView(run);
 }
 
+async function chooseDailyAnswer(run: DailyRunRecord, round: number, guess: number, wordA: string, wordB: string): Promise<string> {
+  const key = JSON.stringify(["daily", run.date, round, guess, wordA, wordB]);
+  return pendingAnswer(key, async () => {
+    await assertAiQuota(run.playerId);
+    let answer: string;
+    try {
+      answer = await getAiPlayer().chooseWord({ wordA, wordB });
+    } catch {
+      throw new GameError("ai_unavailable", "The AI couldn't think of a word. Try again.");
+    }
+    const validated = validateAnswer(answer, [wordA, wordB]);
+    if (!validated.ok) throw new GameError("ai_unavailable", "The AI couldn't think of a new word. Try again.");
+    return validated.word;
+  });
+}
+
+export async function warmDailyOpenings(playerId: string, id: string): Promise<void> {
+  const store = getDailyStore();
+  const run = await owned(playerId, id);
+  if (run.status !== "active") return;
+  await Promise.allSettled(run.pairs.map(async (pair, index) => {
+    const number = index + 1;
+    if (number <= run.currentRound) return;
+    const opening = { ...run, currentRound: number };
+    if (await store.cachedAnswer(opening) !== null) return;
+    const answer = await chooseDailyAnswer(run, number, 1, pair.a, pair.b);
+    await store.cacheFirstAnswer(run, number, answer);
+  }));
+}
+
 export async function prepareDaily(playerId: string, id: string): Promise<DailyRunView> {
   const store = getDailyStore();
   const run = await owned(playerId, id);
@@ -53,12 +84,7 @@ export async function prepareDaily(playerId: string, id: string): Promise<DailyR
   if (round.aiAnswer !== null) return toDailyView(run);
   let answer = await store.cachedAnswer(run);
   if (answer === null) {
-    await assertAiQuota(playerId);
-    try {
-      answer = await getAiPlayer().chooseWord({ wordA: round.wordA, wordB: round.wordB });
-    } catch {
-      throw new GameError("ai_unavailable", "The AI couldn't think of a word. Try again.");
-    }
+    answer = await chooseDailyAnswer(run, run.currentRound, round.guesses.length + 1, round.wordA, round.wordB);
   }
   const validated = validateAnswer(answer, [round.wordA, round.wordB]);
   if (!validated.ok) throw new GameError("ai_unavailable", "The AI couldn't think of a new word. Try again.");
@@ -74,14 +100,22 @@ export async function submitDaily(input: DailyPosition & { answer: string }): Pr
   run: DailyRunView; reveal: Reveal; firstGuesses?: FirstGuessBoard;
 }> {
   const store = getDailyStore();
-  const run = await owned(input.playerId, input.id);
-  const round = run.rounds[run.currentRound - 1];
+  let run = await owned(input.playerId, input.id);
+  let round = run.rounds[run.currentRound - 1];
   if (run.status !== "active" || run.currentRound !== input.round || round.guesses.length + 1 !== input.guess) {
     throw new GameError("conflict", "That guess is already done.");
   }
   const validation = validateAnswer(input.answer, [round.wordA, round.wordB]);
   if (!validation.ok) throw new GameError("invalid_answer", validation.error);
-  if (round.aiAnswer === null) throw new GameError("ai_unavailable", "The AI hasn't picked its word yet. Try again.");
+  if (round.aiAnswer === null) {
+    await prepareDaily(input.playerId, input.id);
+    run = await owned(input.playerId, input.id);
+    round = run.rounds[run.currentRound - 1];
+    if (run.status !== "active" || run.currentRound !== input.round || round.guesses.length + 1 !== input.guess) {
+      throw new GameError("conflict", "That guess is already done.");
+    }
+    if (round.aiAnswer === null) throw new GameError("ai_unavailable", "The AI couldn't think of a word. Try again.");
+  }
   for (let retry = 0; retry < 3; retry++) {
     const boardAttempts = input.guess === 1 ? (await store.firstBoard(run.date, input.round)).attempts : null;
     const boardWords = input.guess === 1 ? await store.firstWords(run.date, input.round) : [];
