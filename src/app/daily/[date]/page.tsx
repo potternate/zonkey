@@ -88,7 +88,7 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
           href="/"
           className="flex min-h-11 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-          <span className="flex size-11 items-center justify-center rounded-xl border bg-card">
+          <span className="brand-mark flex size-11 items-center justify-center rounded-xl border">
             <Image
               src="/zonkey-mark.webp"
               alt=""
@@ -98,7 +98,7 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
               className="h-8 w-7 object-contain"
             />
           </span>
-          <span className="text-2xl font-extrabold tracking-[-0.07em]">zonkey</span>
+          <span className="font-heading text-3xl font-bold tracking-[-0.06em]">zonkey</span>
         </Link>
         <Link
           href="/daily"
@@ -145,7 +145,7 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
         </ol>
         <Link
           href={`/?daily=${date}`}
-          className="mx-auto mt-8 inline-flex min-h-14 items-center justify-center rounded-xl bg-primary px-6 font-bold text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-offset-4"
+          className="mx-auto mt-8 inline-flex min-h-14 items-center justify-center rounded-xl bg-primary px-6 font-bold text-primary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--primary),var(--foreground)_15%)] focus-visible:outline-2 focus-visible:outline-offset-4"
         >
           Play Daily #{entry.number}
         </Link>

@@ -44,7 +44,7 @@ export default function DailyArchivePage() {
           href="/"
           className="flex min-h-11 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
         >
-          <span className="flex size-11 items-center justify-center rounded-xl border bg-card">
+          <span className="brand-mark flex size-11 items-center justify-center rounded-xl border">
             <Image
               src="/zonkey-mark.webp"
               alt=""
@@ -54,7 +54,7 @@ export default function DailyArchivePage() {
               className="h-8 w-7 object-contain"
             />
           </span>
-          <span className="text-2xl font-extrabold tracking-[-0.07em]">zonkey</span>
+          <span className="font-heading text-3xl font-bold tracking-[-0.06em]">zonkey</span>
         </Link>
         <Link
           href="/"

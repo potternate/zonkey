@@ -2,7 +2,7 @@
 
 zonkey.io
 
-**Two words. One wild match.** A mobile-first daily word-convergence game against an AI.
+**Meet in the middle.** A mobile-first daily word-convergence game against an AI.
 
 You and the AI each pick a word connecting two endpoints. Different words become the next guess's endpoints; matching words connect. From guess 2 onward, equivalent meanings also connect.
 
@@ -14,7 +14,7 @@ Daily streaks count consecutive UTC days where the player finishes that day's pu
 
 Every published date, starting September 30, 2026, is playable in the five-round format. The original first pair and puzzle number are preserved; four additional pairs are deterministic. One five-round run is saved per anonymous player/date and can be resumed. Archive runs do not count in live Daily distributions or streaks. Old one-puzzle games remain accessible as **Previous format results**, separately from the new scores; their unplayed rounds are not assigned invented points.
 
-After finishing all five Daily rounds, a curve plots actual player counts at every attainable score (0–5,000 in 200-point steps), with an accessible count table and your score highlighted. It does not fit a synthetic normal distribution. “You did better than X% of players” compares strictly lower scores among other completed live Daily runs for that date. Ties are not beaten; your own run is included in the chart but excluded from the percentile. The percentage rounds down; the first finisher sees a waiting message. Archive, active, and previous format results are excluded.
+After finishing all five Daily rounds, a curve plots actual player counts at every attainable score (0–5,000 in 200-point steps), with your score highlighted and counts included in the chart's screen-reader description. It does not fit a synthetic normal distribution. “You did better than X% of players” compares strictly lower scores among other completed live Daily runs for that date. Ties are not beaten; your own run is included in the chart but excluded from the percentile. The percentage rounds down; the first finisher sees a waiting message. Archive, active, and previous format results are excluded.
 
 ### Database rollout and backfill
 
@@ -93,7 +93,7 @@ The domain is the production identity; adding it to metadata does not deploy or 
 
 ## Design
 
-The supplied zebra mascot anchors Zonkey's dark charcoal surfaces, zebra stripe texture, bold typography, and lime accents. Dark mode is rendered from the first page load, including native controls and the mobile browser theme. Daily stays the primary action; Unlimited, Archive, and saved scores are one tap away. The same palette carries through gameplay, reveals, result charts, scores, instructions, and social preview artwork. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
+The supplied zebra mascot anchors Zonkey's desert safari theme: sand backgrounds, cream surfaces, terracotta actions, olive connections, and brown text. Serif headings and a compact sun, dunes, and acacia illustration complement the simple home screen. The light palette is rendered from the first page load, including native controls and the mobile browser theme. Daily stays the primary action; Unlimited, Archive, and saved scores are one tap away. Shared theme tokens carry through gameplay, reveals, result charts, scores, and instructions. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
 
 Inspiration: [21st.dev Minimal Button](https://21st.dev/@radiumcoders/components/minimal-button). The styling uses the existing Tailwind/shadcn stack without new dependencies.
 
@@ -102,13 +102,15 @@ Returning players' anonymous IDs are copied to `zonkey:player-id` from the legac
 ## Architecture
 
 - `src/lib/game/` — pure rules: normalization, engine, daily pair selection, share text, client view projection.
-- `src/server/ai/` — `AiPlayer` commits an independent answer before submission. A separate `AnswerJudge` corrects the player's submitted word and compares later guesses with the already committed AI answer using structured JSON. The AI player never sees the current player guess.
+- `src/server/ai/` — `AiPlayer` chooses an independent answer using only the endpoint words. A separate `AnswerJudge` corrects the player's submitted word and compares later guesses with the already committed AI answer using structured JSON. The AI player never sees the current player guess.
 - `src/server/store/` — `GameStore` interface; Supabase (`submit_judged_answer` RPC with row locks, atomic global counts, and score aggregation) and in-memory implementations.
-- `src/server/game-service.ts` — start / prepare (AI answers before the player can submit) / submit.
+- `src/server/game-service.ts` — start / prepare / submit. The start API returns immediately without waiting for an LLM. Players can type and submit during preparation; submission waits for an independently generated commitment before judging the guess. Overlapping preparation and submission requests share pending generation within a server instance, and stored commitments resolve races across instances.
 - `src/app/api/` — route handlers. Anonymous identity via `x-player-id` header (UUID persisted in `localStorage`).
 - `src/components/game/` — mode picker, round, reveal, result and score screens.
 
 The client never receives the current round's AI answer, and the server owns round number, game state, canonical words and win condition. If AI generation or judging fails, the round stays unanswered, no attempt is counted, and the player can retry.
+
+Daily preparation also warms the opening answers for the remaining fixed pairs in parallel. These are cached in the existing private `daily_ai_answers` table and reused across players. A failed warm-up is retried when that round is reached; no fallback answer is generated. Later guesses are prepared as their endpoint words become known.
 
 Daily puzzle: `puzzle # = days since 2026-09-30 + 1`, so October 1, 2026 is #2 and October 2 is #3. The pair rotation stays anchored to October 1 using `src/lib/game/pairs.ts`. The original 32 pairs remain at the start of the expanded rotation, and puzzle #1 keeps its original pair, so existing shared boards do not move. Daily advances deterministically through the full pool while Unlimited samples the same pool randomly. Apply `20261001173953_daily_puzzle_numbers.sql` to update saved Daily game numbers and score history. The server's UTC date controls the live Daily for everyone. A requested published past date opens archive practice if unplayed, otherwise the original saved game. One attempt per anonymous browser identity per date; a completed puzzle opens its saved result. Clearing browser identity or using a different browser creates a new anonymous player.
 

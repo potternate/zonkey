@@ -10,6 +10,7 @@ import type { GameMode, GameView, Reveal } from "@/lib/game/types";
 import { toGameView, type GameRecord } from "@/lib/game/view";
 import { AiUnavailableError, getAiPlayer, getAnswerJudge } from "./ai";
 import type { AnswerReview } from "./ai/types";
+import { pendingAnswer } from "./ai/pending-answer";
 import { track } from "./analytics";
 import { GameError } from "./errors";
 import { getStore } from "./store";
@@ -96,8 +97,8 @@ async function createGame(input: StartGameInput): Promise<{ game: GameRecord; cr
   }
 }
 
-/** Starts or resumes a puzzle and tries to lock in the first AI answer. */
-export async function startGame(input: StartGameInput): Promise<GameView> {
+/** Starts or resumes a puzzle, optionally preparing its first AI answer. */
+export async function startGame(input: StartGameInput, prepare = true): Promise<GameView> {
   const { game, created } = await createGame(input);
   if (created) {
     void track({
@@ -107,6 +108,7 @@ export async function startGame(input: StartGameInput): Promise<GameView> {
       properties: { mode: game.mode, puzzleNumber: game.puzzleNumber },
     });
   }
+  if (!prepare) return loadView(game);
   try {
     return await prepareRound(input.playerId, game.id);
   } catch (err) {
@@ -145,17 +147,18 @@ export async function prepareRound(playerId: string, gameId: string): Promise<Ga
   const current = rounds.find((r) => r.roundNumber === game.roundNumber);
   if (!current) throw new GameError("internal", "Current round is missing.");
   if (current.aiAnswer === null) {
-    let word: string;
-    await assertAiQuota(playerId);
-    try {
-      word = await getAiPlayer().chooseWord({ wordA: current.wordA, wordB: current.wordB });
-    } catch (err) {
-      console.error("[zonkey] AI failed", err instanceof AiUnavailableError ? err.cause ?? err : err);
-      throw new GameError("ai_unavailable", "The AI couldn't think of a word. Try again.");
-    }
+    const word = await pendingAnswer(`game:${current.id}`, async () => {
+      await assertAiQuota(playerId);
+      try {
+        return await getAiPlayer().chooseWord({ wordA: current.wordA, wordB: current.wordB });
+      } catch (err) {
+        console.error("[zonkey] AI failed", err instanceof AiUnavailableError ? err.cause ?? err : err);
+        throw new GameError("ai_unavailable", "The AI couldn't think of a word. Try again.");
+      }
+    });
     await store.setAiAnswer(current.id, word);
   }
-  return loadView(game);
+  return getGame(playerId, gameId);
 }
 
 export interface SubmitInput {
@@ -177,13 +180,17 @@ export async function submitAnswer(input: SubmitInput): Promise<SubmitResult> {
   if (game.roundNumber !== input.roundNumber) throw new GameError("conflict", "That round is already done.");
 
   const rounds = await store.getRounds(game.id);
-  const current = rounds.find((r) => r.roundNumber === game.roundNumber);
+  let current = rounds.find((r) => r.roundNumber === game.roundNumber);
   if (!current) throw new GameError("internal", "Current round is missing.");
 
   const validation = validateAnswer(input.answer, [current.wordA, current.wordB]);
   if (!validation.ok) throw new GameError("invalid_answer", validation.error);
 
-  if (current.aiAnswer === null) throw new GameError("ai_unavailable", "The AI hasn't picked its word yet. Try again.");
+  if (current.aiAnswer === null) {
+    await prepareRound(input.playerId, game.id);
+    current = (await store.getRounds(game.id)).find((r) => r.roundNumber === input.roundNumber);
+    if (!current?.aiAnswer) throw new GameError("ai_unavailable", "The AI couldn't think of a word. Try again.");
+  }
   let playerAnswer = validation.word;
   let result: SubmitAnswerResult = { ok: false, code: "board_changed" };
   for (let attempt = 0; attempt < 3; attempt += 1) {

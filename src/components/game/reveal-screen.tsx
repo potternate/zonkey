@@ -21,12 +21,12 @@ function Card({ label, word, matched, delay }: { label: string; word: string; ma
   return (
     <div
       className={cn(
-        "animate-flip-in flex min-w-0 flex-col items-center gap-4 rounded-3xl border px-4 py-8",
+        "animate-flip-in flex min-w-0 flex-col items-center gap-2 rounded-2xl border px-4 py-5",
         matched ? "border-success-border bg-success-muted text-success" : "border-border bg-card",
       )}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <span className="eyebrow opacity-60">{label}</span>
+      <span className="eyebrow text-muted-foreground">{label}</span>
       <BigWord word={word} className="text-[clamp(1.125rem,5vw,2rem)] sm:text-3xl" />
     </div>
   );
@@ -41,7 +41,7 @@ export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses, conti
   }, []);
 
   return (
-    <div className="flex flex-1 flex-col gap-6 pt-8">
+    <div className="flex flex-1 flex-col gap-4 pt-4">
       <div className="grid grid-cols-2 gap-3 [perspective:800px]">
         <Card label="YOU" word={reveal.playerAnswer} matched={reveal.matched} delay={0} />
         <Card label="ZONKEY AI" word={reveal.aiAnswer} matched={reveal.matched} delay={250} />
@@ -54,11 +54,11 @@ export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses, conti
 
       <div className="animate-in fade-in fill-mode-both text-center delay-700 duration-500">
         {reveal.matched ? (
-          <p className="animate-pop text-3xl font-bold tracking-tight text-success">You found your stripe.</p>
+          <p className="animate-pop text-2xl font-bold tracking-tight text-success">Connected.</p>
         ) : gameOver ? (
           <p className="text-lg font-bold">Out of rounds.</p>
         ) : (
-          <p className="text-muted-foreground">No match. These are your next two words.</p>
+          <p className="text-sm text-muted-foreground">No match. Try this pair next.</p>
         )}
       </div>
 
