@@ -47,8 +47,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#10120f",
-  colorScheme: "dark",
+  themeColor: "#f5eddf",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -57,7 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${geistSans.variable}`}>
+    <html lang="en" className={geistSans.variable}>
       <body className="antialiased">{children}</body>
     </html>
   );

@@ -14,7 +14,7 @@ Daily streaks count consecutive UTC days where the player finishes that day's pu
 
 Every published date, starting September 30, 2026, is playable in the five-round format. The original first pair and puzzle number are preserved; four additional pairs are deterministic. One five-round run is saved per anonymous player/date and can be resumed. Archive runs do not count in live Daily distributions or streaks. Old one-puzzle games remain accessible as **Previous format results**, separately from the new scores; their unplayed rounds are not assigned invented points.
 
-After finishing all five Daily rounds, a curve plots actual player counts at every attainable score (0–5,000 in 200-point steps), with an accessible count table and your score highlighted. It does not fit a synthetic normal distribution. “You did better than X% of players” compares strictly lower scores among other completed live Daily runs for that date. Ties are not beaten; your own run is included in the chart but excluded from the percentile. The percentage rounds down; the first finisher sees a waiting message. Archive, active, and previous format results are excluded.
+After finishing all five Daily rounds, a curve plots actual player counts at every attainable score (0–5,000 in 200-point steps), with your score highlighted and counts included in the chart's screen-reader description. It does not fit a synthetic normal distribution. “You did better than X% of players” compares strictly lower scores among other completed live Daily runs for that date. Ties are not beaten; your own run is included in the chart but excluded from the percentile. The percentage rounds down; the first finisher sees a waiting message. Archive, active, and previous format results are excluded.
 
 ### Database rollout and backfill
 
@@ -93,7 +93,7 @@ The domain is the production identity; adding it to metadata does not deploy or 
 
 ## Design
 
-The supplied zebra mascot anchors Zonkey's dark charcoal surfaces, zebra stripe texture, bold typography, and lime accents. Dark mode is rendered from the first page load, including native controls and the mobile browser theme. Daily stays the primary action; Unlimited, Archive, and saved scores are one tap away. The same palette carries through gameplay, reveals, result charts, scores, instructions, and social preview artwork. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
+The supplied zebra mascot anchors Zonkey's desert safari theme: sand backgrounds, cream surfaces, terracotta actions, olive connections, and brown text. Serif headings and a compact sun, dunes, and acacia illustration complement the simple home screen. The light palette is rendered from the first page load, including native controls and the mobile browser theme. Daily stays the primary action; Unlimited, Archive, and saved scores are one tap away. Shared theme tokens carry through gameplay, reveals, result charts, scores, and instructions. Game screens retain large words, generous touch targets, keyboard submission, and reduced-motion support.
 
 Inspiration: [21st.dev Minimal Button](https://21st.dev/@radiumcoders/components/minimal-button). The styling uses the existing Tailwind/shadcn stack without new dependencies.
 

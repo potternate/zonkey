@@ -26,7 +26,7 @@ function Card({ label, word, matched, delay }: { label: string; word: string; ma
       )}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <span className="eyebrow opacity-60">{label}</span>
+      <span className="eyebrow text-muted-foreground">{label}</span>
       <BigWord word={word} className="text-[clamp(1.125rem,5vw,2rem)] sm:text-3xl" />
     </div>
   );

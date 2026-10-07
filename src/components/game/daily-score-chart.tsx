@@ -51,7 +51,10 @@ export function DailyScoreChart({ id, score }: { id: string; score: number }) {
           <p className="text-xs text-muted-foreground">{results.totalPlayers.toLocaleString("en-US")} player{results.totalPlayers === 1 ? "" : "s"} finished</p>
           <svg viewBox="0 0 520 180" role="img" aria-labelledby="score-chart-title score-chart-description" className="w-full overflow-visible">
             <title id="score-chart-title">Completed Daily scores from 0 to 5,000</title>
-            <desc id="score-chart-description">Actual player counts at each score. Your score is {score}. Counts are available in the table below.</desc>
+            <desc id="score-chart-description">
+              Actual player counts at each score. Your score is {score}.
+              {results.distribution.map((bucket) => `${bucket.score} points: ${bucket.count} players.`).join(" ")}
+            </desc>
             <line x1="10" x2="510" y1="148" y2="148" className="stroke-border" />
             <path d={`M 10,148 L ${line} L 510,148 Z`} className="fill-primary/15" />
             <polyline points={line} fill="none" className="stroke-primary" strokeWidth="2" />
@@ -62,19 +65,6 @@ export function DailyScoreChart({ id, score }: { id: string; score: number }) {
             <text x="510" y="172" textAnchor="end" fontSize="12" className="fill-muted-foreground">5,000</text>
           </svg>
           <p className="text-xs text-success">Your score: {score.toLocaleString("en-US")}</p>
-          <details>
-            <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">View score counts</summary>
-            <table className="w-full text-sm">
-              <caption className="sr-only">Daily score distribution</caption>
-              <thead><tr><th scope="col" className="py-2 text-left">Points</th><th scope="col" className="text-right">Players</th></tr></thead>
-              <tbody>{results.distribution.map((bucket) => (
-                <tr key={bucket.score} className={bucket.score === score ? "font-bold text-success" : ""}>
-                  <th scope="row" className="py-1 text-left font-normal">{bucket.score.toLocaleString("en-US")}{bucket.score === score ? " · You" : ""}</th>
-                  <td className="text-right tabular-nums">{bucket.count}</td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </details>
           <p className="text-xs leading-relaxed text-muted-foreground">Actual scores for this Daily. Higher is better; ties aren&rsquo;t beaten. Archive and unfinished games aren&rsquo;t included.</p>
         </>
       )}

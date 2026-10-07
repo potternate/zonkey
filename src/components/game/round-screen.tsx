@@ -89,7 +89,7 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
             spellCheck={false}
             enterKeyHint="go"
             maxLength={40}
-            className="h-16 rounded-2xl border bg-card px-5 text-lg font-medium placeholder:text-sm dark:bg-card md:text-lg"
+            className="h-16 rounded-2xl border bg-card px-5 text-lg font-medium placeholder:text-sm md:text-lg"
           />
         </div>
         <Button

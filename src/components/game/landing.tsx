@@ -18,9 +18,17 @@ export function Landing({
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
   const puzzleNumber = scores ? puzzleNumberForDate(scores.dailyDate) : null;
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10 text-center animate-in fade-in duration-500 sm:py-14">
-      <h1 className="text-[clamp(2.25rem,7vw,3.5rem)] font-extrabold leading-tight tracking-[-0.06em]">
-        Two words.<br /><span className="text-primary">One wild match.</span>
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-8 text-center animate-in fade-in duration-500 sm:py-12">
+      <svg viewBox="0 0 360 90" aria-hidden="true" focusable="false" className="mx-auto mb-5 h-20 w-full max-w-xs">
+        <circle cx="272" cy="25" r="21" className="fill-chart-4/65" />
+        <path d="M10 76Q90 12 182 62T350 51L350 90H10Z" className="fill-chart-3/25" />
+        <path d="M10 84Q107 40 220 75T350 66L350 90H10Z" className="fill-primary/20" />
+        <path d="M76 77L72 43H77L80 61L90 48L93 49L81 67L82 77Z" className="fill-success" />
+        <path d="M47 43C47 36 58 32 65 34C70 24 91 28 94 33C108 30 119 39 115 44C100 48 67 49 47 43Z" className="fill-success" />
+        <path d="M10 89Q115 65 204 82T350 78V90H10Z" className="fill-secondary" />
+      </svg>
+      <h1 className="text-[clamp(2.25rem,7vw,3.5rem)] font-bold leading-tight tracking-[-0.045em]">
+        Two words.<br /><span className="text-primary italic">One wild match.</span>
       </h1>
       <p className="mx-auto mt-4 max-w-80 text-sm leading-6 text-muted-foreground">
         Five daily rounds. Five guesses each.<br />Connect faster to earn up to 5,000 points.

@@ -9,7 +9,7 @@ function sizeFor(word: string): string {
 
 export function BigWord({ word, className }: { word: string; className?: string }) {
   return (
-    <span className={cn("block w-full min-w-0 font-bold lowercase leading-tight tracking-[-0.055em] break-words", sizeFor(word), className)}>
+    <span className={cn("block w-full min-w-0 font-heading font-bold lowercase leading-tight tracking-[-0.045em] break-words", sizeFor(word), className)}>
       {word}
     </span>
   );

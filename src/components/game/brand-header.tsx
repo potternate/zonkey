@@ -20,10 +20,10 @@ export function BrandHeader({
     <>
       <header className="flex items-center justify-between gap-3 border-b py-5 sm:py-6">
         <button onClick={onHome} disabled={disabled} aria-label="Zonkey home" className="flex min-h-11 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 disabled:opacity-50">
-          <span className="flex size-11 items-center justify-center rounded-xl border bg-card">
+          <span className="brand-mark flex size-11 items-center justify-center rounded-xl border">
             <Image src="/zonkey-mark.webp" alt="" width={29} height={34} priority className="h-8 w-7 object-contain" />
           </span>
-          <span className="text-2xl font-extrabold tracking-[-0.07em]">zonkey</span>
+          <span className="font-heading text-3xl font-bold tracking-[-0.06em]">zonkey</span>
         </button>
         <nav aria-label="Game navigation" className="flex gap-1">
           {!home && (
@@ -39,7 +39,7 @@ export function BrandHeader({
           </Button>
         </nav>
       </header>
-      <dialog ref={instructions} aria-labelledby="instructions-title" className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-3xl border bg-card p-6 text-foreground shadow-2xl backdrop:bg-black/75">
+      <dialog ref={instructions} aria-labelledby="instructions-title" className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-3xl border bg-card p-6 text-foreground shadow-2xl backdrop:bg-foreground/60 backdrop:backdrop-blur-sm">
         <div className="flex items-center justify-between gap-4">
           <h2 id="instructions-title" className="text-2xl font-bold tracking-tight">How to play Zonkey.</h2>
           <Button variant="ghost" size="icon" className="size-11" onClick={() => instructions.current?.close()} aria-label="Close instructions"><X /></Button>
