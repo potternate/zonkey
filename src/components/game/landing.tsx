@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { puzzleNumberForDate } from "@/lib/game/daily";
 import type { GameMode } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
+import { WordPairCard } from "./word";
 
 export function Landing({
   onPlay, onScores, scores, busy, error,
@@ -27,14 +28,7 @@ export function Landing({
         <p className="mt-5 text-sm leading-6 text-muted-foreground sm:text-base">
           Two words. You and an AI. Find the same connection.
         </p>
-        <div className="relative mt-6 overflow-hidden rounded-2xl border border-primary/15 bg-secondary/50 px-5 py-5 sm:mt-8 sm:py-7">
-          <span aria-hidden="true" className="absolute -right-3 -top-5 size-24 rounded-full bg-chart-4/20" />
-          <p className="relative flex flex-wrap items-center justify-center gap-x-3 gap-y-2 font-heading text-xl sm:text-2xl" aria-label="For example, donkey and zebra connect when you and the AI both choose Zonkey.">
-            donkey <span className="font-sans text-sm text-muted-foreground">+</span> zebra
-            <ArrowRight aria-hidden="true" className="size-4 text-muted-foreground" />
-            <span className="font-bold italic text-primary">Zonkey</span>
-          </p>
-        </div>
+        <WordPairCard wordA="zebra" wordB="donkey" className="mt-6 sm:mt-8" />
       </div>
       <div className="mx-auto w-full max-w-md rounded-[2rem] border bg-card p-5 text-center shadow-sm sm:p-7">
         <div className="mb-5 flex items-center justify-between text-xs text-muted-foreground">

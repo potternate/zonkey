@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { validateAnswer } from "@/lib/game/normalize";
 import type { CurrentRoundView } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
-import { BigWord } from "./word";
+import { WordPairCard } from "./word";
 
 interface Props {
   round: CurrentRoundView;
@@ -55,11 +55,7 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
 
   return (
     <div key={round.number} className="flex flex-1 flex-col gap-4 pt-3 animate-in fade-in duration-300">
-      <div className="grid min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border bg-card px-4 py-5 text-center">
-        <BigWord word={round.wordA} className="text-[clamp(1.35rem,5.5vw,2.25rem)]" />
-        <span className="text-xl text-primary" aria-hidden="true">↔</span>
-        <BigWord word={round.wordB} className="text-[clamp(1.35rem,5.5vw,2.25rem)]" />
-      </div>
+      <WordPairCard wordA={round.wordA} wordB={round.wordB} />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <label htmlFor="your-word" className="sr-only">Your connection</label>

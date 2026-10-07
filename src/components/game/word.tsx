@@ -14,3 +14,13 @@ export function BigWord({ word, className }: { word: string; className?: string 
     </span>
   );
 }
+
+export function WordPairCard({ wordA, wordB, className }: { wordA: string; wordB: string; className?: string }) {
+  return (
+    <div className={cn("grid min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border bg-card px-4 py-5 text-center", className)}>
+      <BigWord word={wordA} className="text-[clamp(1.35rem,5.5vw,2.25rem)]" />
+      <span className="text-xl text-primary" aria-hidden="true">↔</span>
+      <BigWord word={wordB} className="text-[clamp(1.35rem,5.5vw,2.25rem)]" />
+    </div>
+  );
+}
