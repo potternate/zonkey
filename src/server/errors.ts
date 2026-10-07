@@ -1,4 +1,7 @@
 export type GameErrorCode =
+  | "auth_required"
+  | "plus_required"
+  | "not_configured"
   | "bad_request"
   | "invalid_answer"
   | "not_found"
@@ -8,6 +11,9 @@ export type GameErrorCode =
   | "internal";
 
 const STATUS: Record<GameErrorCode, number> = {
+  auth_required: 401,
+  plus_required: 402,
+  not_configured: 503,
   bad_request: 400,
   invalid_answer: 422,
   not_found: 404,

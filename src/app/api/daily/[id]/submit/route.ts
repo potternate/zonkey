@@ -3,6 +3,7 @@ import { z } from "zod";
 import { DAILY_GUESSES, DAILY_ROUNDS } from "@/lib/game/daily-run";
 import { submitDaily } from "@/server/daily-service";
 import { getPlayerId, parseBody, parseGameId, withErrors } from "@/server/http";
+import { assertDailyAccess } from "@/server/plus-access";
 
 const schema = z.object({
   round: z.number().int().min(1).max(DAILY_ROUNDS),
@@ -12,6 +13,9 @@ const schema = z.object({
 
 export const POST = withErrors(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
   const body = await parseBody(req, schema);
-  const result = await submitDaily({ ...body, id: parseGameId((await ctx.params).id), playerId: getPlayerId(req) });
+  const playerId = await getPlayerId(req);
+  const id = parseGameId((await ctx.params).id);
+  await assertDailyAccess(playerId, id, true);
+  const result = await submitDaily({ ...body, id, playerId });
   return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
 });

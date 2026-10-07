@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ApiError, api } from "@/lib/client/api";
+import { ApiError, api, type Account } from "@/lib/client/api";
 import type { GameMode, GameView, Reveal } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
   const [preparing, setPreparing] = useState(false);
   const [prepareError, setPrepareError] = useState<string | null>(null);
   const [scores, setScores] = useState<PlayerScores | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
   const [scoresError, setScoresError] = useState<string | null>(null);
   const preparingFor = useRef<string | null>(null);
 
@@ -48,6 +49,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
 
   useEffect(() => {
     void refreshScores();
+    void api.account().then(setAccount).catch(() => undefined);
     window.addEventListener("focus", refreshScores);
     return () => window.removeEventListener("focus", refreshScores);
   }, [refreshScores]);
@@ -175,7 +177,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
       <div className={cn("flex w-full flex-1 flex-col", phase !== "landing" && "mx-auto max-w-lg")}>
         {phase === "daily" && <DailyGame key={dailyDate ?? "today"} date={dailyDate} onHome={goHome} onUnlimited={() => void start("unlimited")} onProgress={refreshScores} />}
         {phase === "landing" && (
-          <Landing onPlay={start} onScores={() => setPhase("scores")} scores={scores} busy={starting} error={startError} />
+          <Landing onPlay={start} onScores={() => setPhase("scores")} scores={scores} busy={starting} error={startError} plusEnabled={account?.enabled ?? false} plus={account?.plus ?? false} />
         )}
 
         {phase === "scores" && (
@@ -214,6 +216,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
       <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-5 text-[11px] text-muted-foreground sm:mt-14">
         <span className="font-mono tracking-wide">zonkey.io</span>
         <div className="flex items-center gap-4">
+          {account?.enabled && <a href="/plus" className="inline-flex min-h-11 items-center underline underline-offset-4">{account.plus ? "Your account" : "Zonkey Plus"}</a>}
           <a href="https://github.com/potternate/zonkey" target="_blank" rel="noopener noreferrer" aria-label="View Zonkey on GitHub (opens in a new tab)" className="inline-flex min-h-11 items-center gap-1 rounded-sm underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
             GitHub <span aria-hidden="true">↗</span>
           </a>

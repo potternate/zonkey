@@ -42,6 +42,44 @@ The landing page includes server-rendered how-to and FAQ content, with matching 
 
 Next.js (App Router) · TypeScript · Tailwind CSS 4 · shadcn/ui · Supabase · OpenAI · Vercel
 
+## Zonkey Plus
+
+Plus unlocks Unlimited and historical Archive gameplay for **$5 USD once**, with no renewal. Today's Daily remains free and anonymous. Completed results and the public Archive pages remain readable. Starting, resuming, preparing, and submitting paid games are checked on the server, including old practice routes and yesterday's unfinished Daily.
+
+Email sign-in uses Supabase OTP and server-managed, HTTP-only session cookies. The first browser's anonymous player ID becomes the account's permanent player ID, preserving its saved games and streaks. Subsequent devices use that account ID. A browser ID already attached to another account is never reassigned; the new account receives a fresh ID. Separate histories created on other devices before sign-in are not merged. Sign-out gives the browser a new anonymous ID; sign back in to restore account history and Plus.
+
+### Rollout
+
+The paywall defaults off. Deploy the migration and configure the services before setting `ZONKEY_PLUS_ENABLED=true`; leaving it off preserves existing free access.
+
+1. Apply `supabase/migrations/20261007000000_plus_accounts.sql` after the existing migrations. Account mappings and purchase records are service-role-only tables.
+2. In Supabase Authentication, configure **custom SMTP** with a verified sender. The default mail service is restricted to project team addresses and is not suitable for public sign-in. In the **Magic Link email template**, include `{{ .Token }}` so players receive a code, for example:
+
+   ```html
+   <h2>Sign in to Zonkey</h2>
+   <p>Your sign-in code is <strong>{{ .Token }}</strong>.</p>
+   ```
+
+3. Set these Vercel environment variables:
+
+   | Variable | Value |
+   |---|---|
+   | `SUPABASE_URL` | Existing project URL |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Existing server key |
+   | `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key or legacy `anon` key, **not** the service role key |
+   | `ZONKEY_SITE_URL` | `https://zonkey.io` in Production; the preview's own origin for test checkout |
+   | `STRIPE_SECRET_KEY` | Stripe sandbox/test secret in Preview, live secret in Production |
+   | `STRIPE_WEBHOOK_SECRET` | Signing secret for the matching environment's webhook endpoint |
+   | `ZONKEY_PLUS_ENABLED` | `true` once the service setup is complete |
+
+4. In Stripe Workbench/Webhooks, add `https://zonkey.io/api/stripe/webhook`, listening to `checkout.session.completed` and `checkout.session.async_payment_succeeded`. Put that endpoint's signing secret in `STRIPE_WEBHOOK_SECRET`. Configure a separate sandbox endpoint and secret for any preview used to test payments.
+5. Checkout creates its one-time $5 price on the server. No recurring product or separate price ID is needed. Card checkout supports eligible wallets through Stripe.
+6. Redeploy after environment changes. Test verified email sign-in, a sandbox payment, duplicate webhook delivery, and restoration from a second browser before enabling the live paywall. Never use live Stripe keys in a preview.
+
+Checkout is associated with the verified Supabase user, not an email supplied by the payment form. The signed webhook retrieves the actual Stripe session and validates product metadata, account ID, payment status, mode, currency, and amount. Session and payment-intent uniqueness prevent repeat grants. The return screen performs the same verification to unlock promptly when webhook delivery is delayed. A failed database write returns an error so Stripe retries. Unpaid or cancelled sessions never grant access. Restore access by signing in with the original purchase email; no second payment is needed.
+
+Refunds and disputes do not automatically revoke access in this version; manage refunds in Stripe and revoke a purchase in the server-only table if needed. Existing AI request limits remain in place.
+
 ## Local development
 
 Use Node 24 (pinned in `.nvmrc`) and npm.

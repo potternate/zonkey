@@ -2,14 +2,21 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { GameError } from "./errors";
+import { currentUser } from "./auth";
+import { isAccountPlayer, linkPlayerAccount } from "./account-store";
 
 const playerIdSchema = z.uuid();
 
 export const PLAYER_ID_HEADER = "x-player-id";
 
-export function getPlayerId(req: Request): string {
+export async function getPlayerId(req: Request): Promise<string> {
   const parsed = playerIdSchema.safeParse(req.headers.get(PLAYER_ID_HEADER));
   if (!parsed.success) throw new GameError("bad_request", "Missing or invalid player id.");
+  const user = await currentUser();
+  if (user) return linkPlayerAccount(user.id, parsed.data);
+  if (process.env.SUPABASE_PUBLISHABLE_KEY && await isAccountPlayer(parsed.data)) {
+    throw new GameError("auth_required", "Sign in to restore your saved games.");
+  }
   return parsed.data;
 }
 
