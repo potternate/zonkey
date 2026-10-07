@@ -10,7 +10,7 @@ const state = vi.hoisted(() => ({
   retrieve: vi.fn(), create: vi.fn(), save: vi.fn(), plus: false, signedIn: true,
   userId: "e1d18f06-5278-4754-9b23-b71ecbfb6c72",
 }));
-vi.mock("./account-store", () => ({ savePurchase: state.save, hasPlusAccess: async () => state.plus }));
+vi.mock("./account-store", () => ({ savePurchase: state.save, hasPlusAccess: async () => state.plus, livePayments: () => false }));
 vi.mock("./auth", async () => {
   const actual = await vi.importActual<typeof import("./auth")>("./auth");
   const { GameError } = await vi.importActual<typeof import("./errors")>("./errors");
@@ -40,6 +40,7 @@ function paidSession(overrides: object = {}) {
     client_reference_id: state.userId,
     mode: "payment", status: "complete", payment_status: "paid",
     amount_total: 500, currency: "usd", payment_intent: "pi_purchase",
+    livemode: false,
     ...overrides,
   };
 }
@@ -68,14 +69,14 @@ describe("one-time payment fulfillment", () => {
     await fulfillCheckout("cs_test_purchase");
     expect(state.save).toHaveBeenCalledWith({
       user_id: state.userId, checkout_session_id: "cs_test_purchase",
-      payment_intent_id: "pi_purchase", amount: 500, currency: "usd",
+      payment_intent_id: "pi_purchase", amount: 500, currency: "usd", livemode: false,
     });
   });
 
   it.each([
     { payment_status: "unpaid" }, { payment_status: "no_payment_required" }, { amount_total: 499 },
     { amount_total: 1000 }, { currency: "eur" }, { mode: "subscription" },
-    { status: "open" }, { payment_intent: null }, { client_reference_id: crypto.randomUUID() },
+    { status: "open" }, { payment_intent: null }, { livemode: true }, { client_reference_id: crypto.randomUUID() },
     { metadata: { user_id: "invalid", product: "zonkey_plus" } },
     { metadata: { user_id: state.userId, product: "other" } },
   ])("does not grant access for an ineligible session: %j", async (overrides) => {

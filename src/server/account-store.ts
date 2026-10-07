@@ -8,6 +8,14 @@ export interface PlusPurchase {
   payment_intent_id: string;
   amount: number;
   currency: string;
+  livemode: boolean;
+}
+
+export function livePayments(): boolean {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (key?.startsWith("sk_test_") || key?.startsWith("rk_test_")) return false;
+  return key?.startsWith("sk_live_") === true || key?.startsWith("rk_live_") === true ||
+    process.env.NODE_ENV === "production";
 }
 
 function database() {
@@ -34,14 +42,24 @@ export async function isAccountPlayer(playerId: string): Promise<boolean> {
 
 export async function hasPlusAccess(userId: string): Promise<boolean> {
   const { count, error } = await database().from("plus_purchases")
-    .select("*", { count: "exact", head: true }).eq("user_id", userId);
+    .select("*", { count: "exact", head: true }).eq("user_id", userId).eq("livemode", livePayments());
   if (error) throw new Error("Plus lookup failed.");
   return (count ?? 0) > 0;
 }
 
 export async function savePurchase(purchase: PlusPurchase): Promise<void> {
-  const { error } = await database().from("plus_purchases").upsert(purchase, {
+  const db = database();
+  const { error } = await db.from("plus_purchases").upsert(purchase, {
     onConflict: "checkout_session_id", ignoreDuplicates: true,
   });
-  if (error) throw new Error("Plus purchase could not be saved.");
+  if (!error) return;
+  if (error.code === "23505") {
+    const existing = await db.from("plus_purchases").select("*")
+      .eq("checkout_session_id", purchase.checkout_session_id).maybeSingle<PlusPurchase>();
+    if (!existing.error && existing.data?.user_id === purchase.user_id &&
+      existing.data.payment_intent_id === purchase.payment_intent_id &&
+      existing.data.amount === purchase.amount && existing.data.currency === purchase.currency &&
+      existing.data.livemode === purchase.livemode) return;
+  }
+  throw new Error("Plus purchase could not be saved.");
 }

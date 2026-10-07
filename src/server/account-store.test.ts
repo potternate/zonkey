@@ -51,11 +51,15 @@ describe.skipIf(!url || !key || !container)("account database contracts", () => 
     const purchase = {
       user_id: users[0], checkout_session_id: `cs_test_${crypto.randomUUID()}`,
       payment_intent_id: `pi_${crypto.randomUUID()}`, amount: 500, currency: "usd",
+      livemode: false,
     };
     await Promise.all([savePurchase(purchase), savePurchase(purchase), savePurchase(purchase)]);
     await savePurchase(purchase);
     expect(await hasPlusAccess(users[0])).toBe(true);
     expect(await hasPlusAccess(users[1])).toBe(false);
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_live_fixture");
+    expect(await hasPlusAccess(users[0])).toBe(false);
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fixture");
     const db = createClient(url!, key!, { auth: { persistSession: false } });
     const rows = await db.from("plus_purchases").select("*").eq("checkout_session_id", purchase.checkout_session_id);
     expect(rows.error).toBeNull();

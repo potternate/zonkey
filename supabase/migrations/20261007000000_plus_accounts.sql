@@ -10,6 +10,7 @@ create table public.plus_purchases (
   payment_intent_id text not null unique,
   amount integer not null check (amount = 500),
   currency text not null check (currency = 'usd'),
+  livemode boolean not null,
   created_at timestamptz not null default now()
 );
 

@@ -78,7 +78,7 @@ The paywall defaults off. Deploy the migration and configure the services before
 
 Checkout is associated with the verified Supabase user, not an email supplied by the payment form. The signed webhook retrieves the actual Stripe session and validates product metadata, account ID, payment status, mode, currency, and amount. Session and payment-intent uniqueness prevent repeat grants. The return screen performs the same verification to unlock promptly when webhook delivery is delayed. A failed database write returns an error so Stripe retries. Unpaid or cancelled sessions never grant access. Restore access by signing in with the original purchase email; no second payment is needed.
 
-Refunds and disputes do not automatically revoke access in this version; manage refunds in Stripe and revoke a purchase in the server-only table if needed. Existing AI request limits remain in place.
+Sandbox purchases never unlock the live paywall, even if a preview shares the database. Access follows the configured Stripe key's mode. Refunds and disputes do not automatically revoke access in this version. Existing AI request limits remain in place.
 
 ## Local development
 

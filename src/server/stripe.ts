@@ -1,7 +1,7 @@
 import "server-only";
 import Stripe from "stripe";
 import { z } from "zod";
-import { savePurchase } from "./account-store";
+import { livePayments, savePurchase } from "./account-store";
 import { GameError } from "./errors";
 
 export function stripeClient(): Stripe {
@@ -29,7 +29,8 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
   const userId = z.uuid().safeParse(session.metadata.user_id);
   if (!userId.success || session.client_reference_id !== userId.data ||
     session.mode !== "payment" || session.status !== "complete" ||
-    session.payment_status !== "paid" || session.amount_total !== 500 || session.currency !== "usd") {
+    session.payment_status !== "paid" || session.amount_total !== 500 || session.currency !== "usd" ||
+    session.livemode !== livePayments()) {
     return false;
   }
   const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
@@ -40,6 +41,7 @@ export async function fulfillCheckout(sessionId: string, expectedUserId?: string
     payment_intent_id: paymentId,
     amount: session.amount_total,
     currency: session.currency,
+    livemode: session.livemode,
   });
   return true;
 }
