@@ -3,6 +3,7 @@ import { z } from "zod";
 import { MAX_ROUNDS } from "@/lib/game/config";
 import { submitAnswer } from "@/server/game-service";
 import { getPlayerId, parseBody, parseGameId, withErrors } from "@/server/http";
+import { assertGameAccess } from "@/server/plus-access";
 
 const bodySchema = z.object({
   roundNumber: z.number().int().min(1).max(MAX_ROUNDS),
@@ -10,8 +11,9 @@ const bodySchema = z.object({
 });
 
 export const POST = withErrors(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
-  const playerId = getPlayerId(req);
+  const playerId = await getPlayerId(req);
   const gameId = parseGameId((await ctx.params).id);
+  await assertGameAccess(playerId, gameId, true);
   const body = await parseBody(req, bodySchema);
   const result = await submitAnswer({ playerId, gameId, roundNumber: body.roundNumber, answer: body.answer });
   return NextResponse.json(result);

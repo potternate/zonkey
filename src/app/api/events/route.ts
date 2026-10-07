@@ -10,7 +10,7 @@ const bodySchema = z.object({
 });
 
 export const POST = withErrors(async (req: Request) => {
-  const playerId = getPlayerId(req);
+  const playerId = await getPlayerId(req);
   const body = await parseBody(req, bodySchema);
   await trackShare(playerId, body.gameId);
   return NextResponse.json({ ok: true });

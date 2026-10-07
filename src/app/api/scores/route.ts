@@ -5,7 +5,7 @@ import { getStore } from "@/server/store";
 import { getDailyStore } from "@/server/store/daily-index";
 
 export const GET = withErrors(async (req: Request) => {
-  const playerId = getPlayerId(req);
+  const playerId = await getPlayerId(req);
   const today = toIsoDate(new Date());
   const [scores, dailyRuns] = await Promise.all([
     getStore().getPlayerScores(playerId, today),

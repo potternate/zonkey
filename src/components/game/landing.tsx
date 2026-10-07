@@ -7,13 +7,15 @@ import type { PlayerScores } from "@/lib/game/scores";
 import { WordPairCard } from "./word";
 
 export function Landing({
-  onPlay, onScores, scores, busy, error,
+  onPlay, onScores, scores, busy, error, plusEnabled, plus,
 }: {
   onPlay: (mode: GameMode) => void;
   onScores: () => void;
   scores: PlayerScores | null;
   busy: boolean;
   error: string | null;
+  plusEnabled: boolean;
+  plus: boolean;
 }) {
   const daily = scores?.dailyRuns ? scores.dailyRuns.history.find((run) => run.date === scores.dailyDate) : scores?.dailyGame;
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
@@ -47,6 +49,9 @@ export function Landing({
               <Link href="/daily"><Archive className="size-4" />Archive</Link>
             </Button>
           </div>
+          {plusEnabled && <Link href="/plus" className="inline-flex min-h-11 items-center justify-center text-xs text-primary underline underline-offset-4">
+            {plus ? "Plus unlocked · Your account" : "Unlimited + Archive · $5 once"}
+          </Link>}
           {error && <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive" role="alert">{error}</p>}
         </div>
         {scores && (

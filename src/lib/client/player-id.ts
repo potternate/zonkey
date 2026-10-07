@@ -2,6 +2,15 @@ const STORAGE_KEY = "zonkey:player-id";
 const LEGACY_STORAGE_KEY = "connect-two:player-id";
 let sessionPlayerId: string | null = null;
 
+export function setPlayerId(id: string): void {
+  sessionPlayerId = id;
+  try { localStorage.setItem(STORAGE_KEY, id); } catch {}
+}
+
+export function resetPlayerId(): void {
+  setPlayerId(crypto.randomUUID());
+}
+
 /** Anonymous, persistent player identity. No account required. */
 export function getPlayerId(): string {
   if (sessionPlayerId) return sessionPlayerId;
