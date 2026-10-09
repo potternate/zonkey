@@ -5,10 +5,12 @@ import { getPlayerId, parseBody, withErrors } from "@/server/http";
 import { GameError } from "@/server/errors";
 import { toIsoDate } from "@/lib/game/daily";
 import { assertPlusAccess } from "@/server/plus-access";
+import { UNLIMITED_THEMES } from "@/lib/game/themes";
 
 const bodySchema = z.object({
   mode: z.enum(["daily", "unlimited", "practice"]).default("daily"),
   puzzleDate: z.string().optional(),
+  theme: z.enum(UNLIMITED_THEMES).optional(),
 });
 
 export const POST = withErrors(async (req: Request) => {
@@ -18,6 +20,6 @@ export const POST = withErrors(async (req: Request) => {
     throw new GameError("conflict", "Daily now has five rounds. Refresh Zonkey to play.");
   }
   await assertPlusAccess();
-  const game = await startGame({ playerId, mode: body.mode, puzzleDate: body.puzzleDate }, false);
+  const game = await startGame({ playerId, mode: body.mode, puzzleDate: body.puzzleDate, theme: body.theme }, false);
   return NextResponse.json({ game });
 });

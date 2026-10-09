@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { PlusScreen } from "@/components/game/plus-screen";
+import { redirect } from "next/navigation";
+import { plusEnabled } from "@/server/auth";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Zonkey Plus — $5 Lifetime Unlock",
@@ -9,5 +13,6 @@ export const metadata: Metadata = {
 };
 
 export default function PlusPage() {
+  if (!plusEnabled()) redirect("/");
   return <PlusScreen />;
 }

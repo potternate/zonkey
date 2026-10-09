@@ -4,6 +4,7 @@ import type { PlayerScores } from "@/lib/game/scores";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
 import type { DailyResults } from "@/lib/game/daily-results";
 import type { GameRecord, RoundRecord } from "@/lib/game/view";
+import type { UnlimitedTheme } from "@/lib/game/themes";
 import {
   DuplicateDailyGameError,
   type AnalyticsEvent,
@@ -14,6 +15,7 @@ import {
 } from "./types";
 
 interface GameRow {
+  theme: UnlimitedTheme | null;
   id: string;
   player_id: string;
   mode: GameMode;
@@ -51,6 +53,7 @@ const UNIQUE_VIOLATION = "23505";
 
 function toGame(row: GameRow): GameRecord {
   return {
+    ...(row.theme ? { theme: row.theme } : {}),
     id: row.id,
     playerId: row.player_id,
     mode: row.mode,
@@ -108,7 +111,8 @@ export class SupabaseStore implements GameStore {
 
   async createGame(input: NewGameInput): Promise<GameRecord> {
     const { data, error } = await this.db
-      .rpc("create_game", {
+      .rpc(input.theme ? "create_themed_game" : "create_game", {
+        ...(input.theme ? { p_theme: input.theme } : {}),
         p_player_id: input.playerId,
         p_mode: input.mode,
         p_puzzle_date: input.puzzleDate,

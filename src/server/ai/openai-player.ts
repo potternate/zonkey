@@ -3,8 +3,9 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 import { buildCorrectionPrompt, buildUserPrompt, getSystemPrompt } from "./prompt";
 import { AiUnavailableError, type AiPlayer, type ChooseWordInput } from "./types";
 import { checkAiWord } from "./validate";
+import { boundedCompletion } from "./completion";
 
-const MAX_ATTEMPTS = 3;
+const MAX_ATTEMPTS = 2;
 
 const RESPONSE_FORMAT = {
   type: "json_schema",
@@ -26,6 +27,7 @@ export interface OpenAiPlayerOptions {
   /** Omit for models that don't accept a temperature. */
   temperature?: number;
   systemPrompt?: string;
+  fallbackModel?: string;
 }
 
 export class OpenAiPlayer implements AiPlayer {
@@ -34,7 +36,7 @@ export class OpenAiPlayer implements AiPlayer {
 
   constructor(private options: OpenAiPlayerOptions) {
     this.id = `openai:${options.model}`;
-    this.client = new OpenAI({ apiKey: options.apiKey, timeout: 15_000, maxRetries: 1 });
+    this.client = new OpenAI({ apiKey: options.apiKey, maxRetries: 0 });
   }
 
   async chooseWord({ wordA, wordB }: ChooseWordInput): Promise<string> {
@@ -46,14 +48,15 @@ export class OpenAiPlayer implements AiPlayer {
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       let content: string | null;
       try {
-        const completion = await this.client.chat.completions.create({
-          model: this.options.model,
+        const completion = await boundedCompletion(this.client, {
+          model: attempt === 0 ? this.options.model : this.options.fallbackModel ?? this.options.model,
           messages,
           response_format: RESPONSE_FORMAT,
           ...(this.options.temperature !== undefined ? { temperature: this.options.temperature } : {}),
         });
         content = completion.choices[0]?.message?.content ?? null;
       } catch (err) {
+        if (attempt < MAX_ATTEMPTS - 1) continue;
         throw new AiUnavailableError("OpenAI request failed", { cause: err });
       }
       if (!content) {

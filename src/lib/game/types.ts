@@ -1,4 +1,5 @@
 import type { FirstGuessBoard } from "./first-guesses";
+import type { UnlimitedTheme } from "./themes";
 
 export type GameMode = "daily" | "unlimited" | "practice";
 
@@ -31,6 +32,7 @@ export interface CurrentRoundView {
 }
 
 export interface GameView {
+  theme?: UnlimitedTheme;
   id: string;
   mode: GameMode;
   puzzleNumber: number | null;

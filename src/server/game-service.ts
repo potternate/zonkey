@@ -6,6 +6,7 @@ import type { DailyResults } from "@/lib/game/daily-results";
 import { firstGuessBoardKey } from "@/lib/game/first-guesses";
 import { validateAnswer } from "@/lib/game/normalize";
 import { randomStartingPair } from "@/lib/game/pairs";
+import { randomThemedPair, type UnlimitedTheme } from "@/lib/game/themes";
 import type { GameMode, GameView, Reveal } from "@/lib/game/types";
 import { toGameView, type GameRecord } from "@/lib/game/view";
 import { AiUnavailableError, getAiPlayer, getAnswerJudge } from "./ai";
@@ -17,6 +18,7 @@ import { getStore } from "./store";
 import { DuplicateDailyGameError, type SubmitAnswerResult } from "./store/types";
 
 export interface StartGameInput {
+  theme?: UnlimitedTheme;
   playerId: string;
   mode: GameMode;
   puzzleDate?: string;
@@ -53,11 +55,12 @@ async function loadOwnedGame(playerId: string, gameId: string): Promise<GameReco
 
 async function createGame(input: StartGameInput): Promise<{ game: GameRecord; created: boolean }> {
   const store = getStore();
+  if (input.theme && input.mode !== "unlimited") throw new GameError("bad_request", "Themes are available in Unlimited.");
   if (input.puzzleDate !== undefined && input.mode !== "daily") {
     throw new GameError("bad_request", "Choose Daily to play a dated puzzle.");
   }
   if (input.mode !== "daily") {
-    const pair = randomStartingPair();
+    const pair = input.theme ? randomThemedPair(input.theme) : randomStartingPair();
     const game = await store.createGame({
       playerId: input.playerId,
       mode: input.mode,
@@ -65,6 +68,7 @@ async function createGame(input: StartGameInput): Promise<{ game: GameRecord; cr
       puzzleNumber: null,
       wordA: pair.a,
       wordB: pair.b,
+      ...(input.theme ? { theme: input.theme } : {}),
     });
     return { game, created: true };
   }

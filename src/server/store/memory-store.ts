@@ -31,6 +31,7 @@ export class MemoryStore implements GameStore {
     }
     const now = new Date().toISOString();
     const game: GameRecord = {
+      ...(input.theme ? { theme: input.theme } : {}),
       id: crypto.randomUUID(),
       playerId: input.playerId,
       mode: input.mode,

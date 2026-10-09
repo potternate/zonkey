@@ -26,6 +26,7 @@ export function getAiPlayer(): AiPlayer {
       apiKey,
       model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
       temperature: parseTemperature(process.env.OPENAI_TEMPERATURE),
+      fallbackModel: process.env.OPENAI_FALLBACK_MODEL || "gpt-4.1-nano",
     });
   } else if (process.env.NODE_ENV !== "production") {
     console.warn("[zonkey] OPENAI_API_KEY not set; using mock AI player.");

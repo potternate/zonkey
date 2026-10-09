@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "node scripts/test-database.mjs",
-    "backfill:daily": "tsx scripts/backfill-daily.ts"
+    "backfill:daily": "tsx scripts/backfill-daily.ts",
+    "analyze:pairs": "tsx scripts/analyze-pairs.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

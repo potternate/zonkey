@@ -3,8 +3,10 @@ import type { PlayerScores } from "@/lib/game/scores";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
 import type { DailyResults } from "@/lib/game/daily-results";
 import type { GameRecord, RoundRecord } from "@/lib/game/view";
+import type { UnlimitedTheme } from "@/lib/game/themes";
 
 export interface NewGameInput {
+  theme?: UnlimitedTheme;
   playerId: string;
   mode: GameMode;
   puzzleDate: string | null;

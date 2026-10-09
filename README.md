@@ -50,7 +50,7 @@ Email sign-in uses Supabase OTP and server-managed, HTTP-only session cookies. T
 
 ### Rollout
 
-The paywall defaults off. Deploy the migration and configure the services before setting `ZONKEY_PLUS_ENABLED=true`; leaving it off preserves existing free access.
+The paywall defaults off. Set the server environment variable `ZONKEY_PLUS_ENABLED=true` to enable it, or `false` to disable it, then redeploy. On Vercel, change it in **Project → Settings → Environment Variables** for the desired environment. Disabled means free Unlimited and Archive, no Plus/account/upgrade links, no sign-in prompts, and `/plus` redirects home. New Checkout requests return 404. Existing signed-in players retain their history; expired accounts get a fresh anonymous identity while account history stays protected. Stored purchases and payment webhooks remain intact so re-enabling restores paid access.
 
 1. Apply `supabase/migrations/20261007000000_plus_accounts.sql` after the existing migrations. Account mappings and purchase records are service-role-only tables.
 2. In Supabase Authentication, configure **custom SMTP** with a verified sender. The default mail service is restricted to project team addresses and is not suitable for public sign-in. In the **Magic Link email template**, include `{{ .Token }}` so players receive a code, for example:
@@ -79,6 +79,15 @@ The paywall defaults off. Deploy the migration and configure the services before
 Checkout is associated with the verified Supabase user, not an email supplied by the payment form. The signed webhook retrieves the actual Stripe session and validates product metadata, account ID, payment status, mode, currency, and amount. Session and payment-intent uniqueness prevent repeat grants. The return screen performs the same verification to unlock promptly when webhook delivery is delayed. A failed database write returns an error so Stripe retries. Unpaid or cancelled sessions never grant access. Restore access by signing in with the original purchase email; no second payment is needed.
 
 Sandbox purchases never unlock the live paywall, even if a preview shares the database. Access follows the configured Stripe key's mode. Refunds and disputes do not automatically revoke access in this version. Existing AI request limits remain in place.
+
+## Gameplay upgrades
+
+- Daily #11 (October 10, 2026) onward keeps the established first-pair schedule and adds four curated challenges: gentle, medium, gentle, tricky. Published puzzles and saved results remain unchanged. Difficulty is editorial, not calibrated from the small current sample.
+- Scores shows a 7-day average, a 30-day trend, and guesses per solved round for completed five-round runs. Daily is grouped by puzzle date; Archive by actual completion date. Failed rounds are excluded from guess averages.
+- Unlimited offers Random, Animals, Food, and Outdoors on a separate picker. The selected theme is saved with the game and reused by Play again. Random retains the original full pool.
+- Each OpenAI attempt has a six-second deadline and no hidden SDK retries. Word generation uses `OPENAI_MODEL` first, then `OPENAI_FALLBACK_MODEL` (default `gpt-4.1-nano`) on failure; the judge retries the same judge model once. Prompts, validation, shared Daily commitments, and AI quotas are unchanged. Quotas count logical AI operations, including failed operations. Preparation and submission retry once in the browser; a lost submission response is recovered from saved state before reposting. Failed requests preserve the typed word and never consume a guess.
+- Before deploying, apply `20261009060000_personal_progress.sql` and `20261009070000_unlimited_themes.sql` after existing migrations. Both are additive; existing games have no theme.
+- `npm run analyze:pairs` reads production with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` and prints only aggregate pair statistics and its PostgREST query projections. It separates game modes, excludes unreached Daily rounds, and requires 20 observations before flagging a pair. Unfinished for 24 hours is a review signal, not proof of abandonment. The command never updates the schedule automatically.
 
 ## Local development
 
