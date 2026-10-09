@@ -24,11 +24,11 @@ export function Chain({ game }: { game: GameView }) {
         <span className="text-center">YOU</span>
         <span className="text-center">ZONKEY AI</span>
       </li>
-      <li className="grid grid-cols-[2rem_1fr_1fr] items-center gap-2">
+      {game.startPair && <li className="grid grid-cols-[2rem_1fr_1fr] items-center gap-2">
         <span className="text-xs text-muted-foreground">▶</span>
         <Pill word={game.startPair.a} tone="start" />
         <Pill word={game.startPair.b} tone="start" />
-      </li>
+      </li>}
       {game.rounds.map((r, i) => (
         <li
           key={r.number}

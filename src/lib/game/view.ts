@@ -3,6 +3,7 @@ import type { CurrentRoundView, GameMode, GameStatus, GameView, RoundView } from
 import type { UnlimitedTheme } from "./themes";
 
 export interface GameRecord {
+  playerFirst?: boolean;
   theme?: UnlimitedTheme;
   id: string;
   playerId: string;
@@ -49,17 +50,25 @@ export function toGameView(game: GameRecord, rounds: RoundRecord[], maxRounds: n
         matched: r.matched === true,
       });
     } else if (game.status === "active" && r.roundNumber === game.roundNumber) {
-      current = { number: r.roundNumber, wordA: r.wordA, wordB: r.wordB, ready: r.aiAnswer !== null };
+      const opening = game.playerFirst === true && r.roundNumber === 1;
+      current = {
+        number: r.roundNumber,
+        wordA: opening ? "" : r.wordA,
+        wordB: opening ? "" : r.wordB,
+        ...(opening ? { opening } : {}),
+        ready: r.aiAnswer !== null,
+      };
     }
   }
   return {
+    ...(game.playerFirst ? { playerFirst: true } : {}),
     ...(game.theme ? { theme: game.theme } : {}),
     id: game.id,
     mode: game.mode,
     puzzleNumber: game.puzzleNumber,
     status: game.status,
     maxRounds,
-    startPair: findStartingPair(game.startWordA, game.startWordB),
+    startPair: game.playerFirst ? null : findStartingPair(game.startWordA, game.startWordB),
     rounds: completed,
     current,
   };

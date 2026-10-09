@@ -17,7 +17,7 @@ export function Landing({
   plusEnabled: boolean;
   plus: boolean;
 }) {
-  const daily = scores?.dailyRuns ? scores.dailyRuns.history.find((run) => run.date === scores.dailyDate) : scores?.dailyGame;
+  const daily = scores?.dailyRuns?.history.find((run) => run.mode === "daily" && run.date === scores.dailyDate);
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
   const puzzleNumber = scores ? puzzleNumberForDate(scores.dailyDate) : null;
   return (
@@ -28,7 +28,7 @@ export function Landing({
           Meet in<br /><span className="text-primary italic">the middle.</span>
         </h1>
         <p className="mt-5 text-sm leading-6 text-muted-foreground sm:text-base">
-          Two words. You and an AI. Find the same connection.
+          Pick your word. Reveal Zonkey&rsquo;s. Meet in the middle.
         </p>
         <WordPairCard wordA="zebra" wordB="donkey" className="mt-6 sm:mt-8" />
       </div>

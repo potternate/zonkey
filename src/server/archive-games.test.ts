@@ -102,7 +102,7 @@ describe("playable Daily archives", () => {
       method: "POST", headers, body: JSON.stringify({ mode: "daily", puzzleDate: "2026-09-30" }),
     }));
     expect(valid.status).toBe(200);
-    expect(await valid.json()).toMatchObject({ game: { mode: "practice", puzzleNumber: 1 } });
+    expect(await valid.json()).toMatchObject({ run: { mode: "archive", puzzleNumber: 1, playerFirst: true } });
     for (const body of [
       { mode: "daily", puzzleDate: 20261001 },
       { mode: "daily", puzzleDate: "2026-10-05" },

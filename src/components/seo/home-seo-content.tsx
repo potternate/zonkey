@@ -10,12 +10,12 @@ const questions = [
   {
     question: "How do you play Zonkey?",
     answer:
-      "Start with two words, enter one word that links them, and reveal the AI's answer. For example, donkey and zebra can connect with Zonkey, a donkey–zebra hybrid. Different answers become the next pair. Daily has five rounds, with five guesses per round. Connecting sooner earns more points, up to 5,000 in total. Unlimited allows eight turns per game.",
+      "Enter your starting word to reveal Zonkey's preset word. If they differ, use that pair to choose a connection. For example, your donkey and the AI's zebra can both lead to Zonkey, a donkey–zebra hybrid. Different answers become the next pair until you match. Daily, Unlimited, and Archive all have five rounds with five guesses per round, including your opening word. Connecting sooner earns more points, up to 5,000 in total.",
   },
   {
     question: "Is the Daily puzzle the same for everyone?",
     answer:
-      "Yes. Every player receives the same five Daily starting pairs on the same UTC date. The AI's committed answer is shared whenever players reach the same pair at the same guess in a round. Finish all five rounds to compare your score with other players.",
+      "Yes. Every player faces the same five preset Daily opening words on the same UTC date, revealed after entering their own word. Later AI answers are shared whenever players reach the same pair at the same guess in a round. Finish all five rounds to compare your score with other players. Past Dailies use the same five-round opening format in Archive.",
   },
   {
     question: "Can I play more than once a day?",

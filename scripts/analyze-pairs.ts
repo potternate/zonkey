@@ -6,7 +6,7 @@ interface DailyRow {
   mode: string;
   current_round: number;
   started_at: string;
-  daily_puzzles: { pairs: { a: string; b: string }[] };
+  daily_puzzles: { pairs: { a: string; b: string }[]; opening_words: string[] | null };
   daily_rounds: {
     round_number: number;
     status: "active" | "won" | "lost";
@@ -15,6 +15,7 @@ interface DailyRow {
 }
 
 interface GameRow {
+  player_first: boolean;
   id: string;
   mode: string;
   status: "active" | "won" | "lost";
@@ -31,8 +32,8 @@ async function analyze() {
   const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   const observations: PairObservation[] = [];
   const snapshot = new Date().toISOString();
-  const dailySelect = "id,mode,current_round,started_at,daily_puzzles(pairs),daily_rounds(round_number,status,daily_guesses(guess_number,matched,created_at))";
-  const gameSelect = "id,mode,status,start_word_a,start_word_b,started_at,rounds(round_number,player_answer,matched,created_at)";
+  const dailySelect = "id,mode,current_round,started_at,daily_puzzles(pairs,opening_words),daily_rounds(round_number,status,daily_guesses(guess_number,matched,created_at))";
+  const gameSelect = "id,mode,status,start_word_a,start_word_b,started_at,player_first,rounds(round_number,player_answer,matched,created_at)";
   await Promise.all([
     (async () => {
       for (let offset = 0; ; offset += 500) {
@@ -40,6 +41,7 @@ async function analyze() {
           .lte("started_at", snapshot).order("id").range(offset, offset + 499).returns<DailyRow[]>();
         if (error) throw new Error(error.message);
         for (const run of data) {
+          if (run.daily_puzzles.opening_words) continue;
           const lastActivity = run.daily_rounds.flatMap((round) => round.daily_guesses.map((guess) => guess.created_at)).sort().at(-1) ?? run.started_at;
           for (const round of run.daily_rounds.filter((round) => round.round_number <= run.current_round)) {
             const pair = run.daily_puzzles.pairs[round.round_number - 1];
@@ -59,6 +61,7 @@ async function analyze() {
           .lte("started_at", snapshot).order("id").range(offset, offset + 499).returns<GameRow[]>();
         if (error) throw new Error(error.message);
         for (const game of data) {
+          if (game.player_first) continue;
           const submitted = game.rounds.filter((round) => round.player_answer !== null);
           observations.push({
             a: game.start_word_a, b: game.start_word_b, mode: game.mode === "daily" ? "legacy-daily" : game.mode,
@@ -73,7 +76,7 @@ async function analyze() {
   ]);
   console.log(JSON.stringify({
     asOf: snapshot, minimumReviewSample: 20,
-    note: "Stale means unfinished for at least 24 hours; it is a review signal, not confirmed abandonment. Difficulty labels are editorial until samples are sufficient.",
+    note: "Player-first games are excluded: their initial pairs are player-selected. Stale means unfinished for at least 24 hours; it is a review signal, not confirmed abandonment. Difficulty labels are editorial until samples are sufficient.",
     queries: { daily: dailySelect, games: gameSelect },
     pairs: pairQuality(observations, new Date(snapshot)),
   }, null, 2));

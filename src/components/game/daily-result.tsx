@@ -24,7 +24,7 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
     setManualCopy(null);
     setMessage(null);
     setOpenSeparately(false);
-    const url = `${window.location.origin}/?daily=${run.date}`;
+    const url = `${window.location.origin}${run.mode === "unlimited" ? "/" : `/?daily=${run.date}`}`;
     const text = buildDailyShareText(run, copyOnly ? url : undefined);
     const operation = copyOnly ? copyText(text) : shareText(text, url);
     void api.shareDaily(run.id);
@@ -43,7 +43,7 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
   return (
     <div className="flex flex-1 flex-col items-center gap-6 py-8 text-center">
       <div className="space-y-3">
-        <p className="eyebrow text-primary">{run.mode === "archive" ? "Archive" : "Daily"} #{run.puzzleNumber} complete</p>
+        <p className="eyebrow text-primary">{run.mode === "unlimited" ? "Unlimited" : `${run.mode === "archive" ? "Archive" : "Daily"} #${run.puzzleNumber}`} complete</p>
         <h1 className="text-5xl font-bold tracking-tight tabular-nums">{run.score.toLocaleString("en-US")}<span className="mt-2 block text-sm font-normal text-muted-foreground">of {DAILY_MAX_SCORE.toLocaleString("en-US")} points</span></h1>
         <p className="text-sm text-muted-foreground">{solved} of 5 rounds connected.</p>
       </div>
@@ -53,8 +53,8 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
         </Button>
         {run.mode === "archive" ? (
           <Button asChild variant="outline" className="h-12 w-full rounded-xl"><Link href="/daily">Play another Archive</Link></Button>
-        ) : <Button variant="outline" onClick={onUnlimited} className="h-12 w-full rounded-xl">Play Unlimited</Button>}
-        {openSeparately && <a href={`/?daily=${run.date}`} target="_blank" rel="noopener noreferrer" className="block py-3 text-sm underline">Open game to share</a>}
+        ) : <Button variant="outline" onClick={onUnlimited} className="h-12 w-full rounded-xl">{run.mode === "unlimited" ? "Play again" : "Play Unlimited"}</Button>}
+        {openSeparately && <a href={run.mode === "unlimited" ? `/?run=${run.id}` : `/?daily=${run.date}`} target="_blank" rel="noopener noreferrer" className="block py-3 text-sm underline">Open game to share</a>}
         {manualCopy && <textarea aria-label="Result to copy" value={manualCopy} readOnly onFocus={(event) => event.currentTarget.select()} className="min-h-52 w-full rounded-xl border bg-card p-3 text-sm" />}
         <p className="text-sm text-muted-foreground" aria-live="polite">{message}</p>
       </div>
@@ -63,13 +63,13 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
         {run.rounds.map((round) => (
           <details key={round.number}>
             <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 py-3 text-sm">
-              <span>Round {round.number} · {round.startPair.a} + {round.startPair.b}</span>
+              <span>Round {round.number}{round.startPair ? ` · ${round.startPair.a} + ${round.startPair.b}` : ""}</span>
               <span className="shrink-0 font-semibold tabular-nums">{round.score} pts</span>
             </summary>
             <ol className="space-y-2 pb-4 text-sm">
               {round.guesses.map((guess) => (
                 <li key={guess.number} className={guess.matched ? "text-success" : "text-muted-foreground"}>
-                  {guess.number}. {guess.wordA} + {guess.wordB} → You: {guess.playerAnswer} · AI: {guess.aiAnswer}{guess.matched ? " · Connected" : ""}
+                  {guess.number}. {guess.wordA && guess.wordB ? `${guess.wordA} + ${guess.wordB} → ` : ""}You: {guess.playerAnswer} · AI: {guess.aiAnswer}{guess.matched ? " · Connected" : ""}
                 </li>
               ))}
             </ol>

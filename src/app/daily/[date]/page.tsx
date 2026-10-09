@@ -7,7 +7,6 @@ import {
   formatArchiveDate,
 } from "@/lib/game/archive";
 import { JsonLd } from "@/components/seo/json-ld";
-import { dailyPairsForPuzzle } from "@/lib/game/daily-run";
 
 interface DailyPageProps {
   params: Promise<{ date: string }>;
@@ -23,8 +22,8 @@ export async function generateMetadata({
   if (!entry) return {};
 
   const formatted = formatArchiveDate(date);
-  const title = `Daily Word Game #${entry.number}: ${entry.pair.a} and ${entry.pair.b}`;
-  const description = `Zonkey Daily #${entry.number} for ${formatted}: connect ${entry.pair.a} and ${entry.pair.b} in this free word association game.`;
+  const title = `Daily Word Game #${entry.number}: ${formatted}`;
+  const description = `Zonkey Daily #${entry.number} for ${formatted}: choose your opening word, reveal Zonkey's, and connect over five rounds in this daily word association game.`;
 
   return {
     title,
@@ -68,7 +67,7 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
   const article = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: `Zonkey Daily #${entry.number}: ${entry.pair.a} and ${entry.pair.b}`,
+    headline: `Zonkey Daily #${entry.number}: ${formatted}`,
     datePublished: date,
     dateModified: date,
     mainEntityOfPage: `https://zonkey.io/daily/${date}`,
@@ -78,7 +77,7 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
       name: "Zonkey",
       url: "https://zonkey.io",
     },
-    description: `The starting pair for Zonkey Daily #${entry.number}, the free daily word association game.`,
+    description: `Five word association rounds in Zonkey Daily #${entry.number}.`,
   };
 
   return (
@@ -114,35 +113,12 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
           {formatted}
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-          This puzzle gives everyone the same two starting words in the Daily
-          word association game.
+          Choose your starting word. Reveal Zonkey’s preset word, then keep connecting until you meet in the middle.
         </p>
-
-        <div className="daily-card relative isolate mx-auto mt-10 flex w-full max-w-xl items-center justify-center gap-4 overflow-hidden rounded-[2rem] border border-primary/25 bg-card p-8 sm:gap-8 sm:p-12">
-          <strong className="relative z-10 min-w-0 flex-1 break-words text-3xl tracking-[-0.045em] sm:text-5xl">
-            {entry.pair.a}
-          </strong>
-          <span className="relative z-10 text-2xl text-primary" aria-label="connects to">
-            ↔
-          </span>
-          <strong className="relative z-10 min-w-0 flex-1 break-words text-3xl tracking-[-0.045em] sm:text-5xl">
-            {entry.pair.b}
-          </strong>
-        </div>
 
         <p className="mx-auto mt-8 max-w-lg text-sm leading-7 text-muted-foreground">
-          Pick one word that connects both endpoints. Zonkey&rsquo;s AI makes
-          its own choice before the player submits. Different answers form the
-          next pair. Play five rounds with five guesses each, earning up to
-          1,000 points per round and 5,000 in total.
+          Everyone faces the same five opening words, kept hidden until you submit yours. Different words become your next pair. Your opening entry is guess one. Play five rounds with five guesses each, earning up to 1,000 points per round and 5,000 in total.
         </p>
-        <ol className="mx-auto mt-5 w-full max-w-md divide-y rounded-xl border px-4 text-left text-sm">
-          {dailyPairsForPuzzle(entry.number).map((pair, index) => (
-            <li key={`${pair.a}:${pair.b}`} className="flex min-h-11 justify-between gap-3 py-3">
-              <span className="text-muted-foreground">Round {index + 1}</span><span>{pair.a} + {pair.b}</span>
-            </li>
-          ))}
-        </ol>
         <Link
           href={`/?daily=${date}`}
           className="mx-auto mt-8 inline-flex min-h-14 items-center justify-center rounded-xl bg-primary px-6 font-bold text-primary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--primary),var(--foreground)_15%)] focus-visible:outline-2 focus-visible:outline-offset-4"

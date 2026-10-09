@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Zonkey — Daily Word Association Game",
     description:
-      "Five Daily rounds, five guesses each. Connect two words with an AI, score up to 5,000 points, or play Unlimited.",
+      "Enter your word, reveal Zonkey's, then keep connecting. Five rounds and five guesses each in Daily, Archive, and Unlimited.",
     siteName: "Zonkey",
     url: "/",
     type: "website",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Zonkey — Daily Word Association Game",
     description:
-      "Connect two starting words with an AI. Play one free shared Daily or go Unlimited.",
+      "Start with your word, reveal Zonkey's, and connect over five rounds. Play the free Daily, Unlimited, or past Dailies in Archive.",
     images: ["/opengraph-image.png"],
   },
 };

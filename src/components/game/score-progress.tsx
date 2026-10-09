@@ -2,7 +2,7 @@ import type { DailyRunEntry } from "@/lib/game/daily-run";
 import { scoreProgress } from "@/lib/game/progress";
 
 export function ScoreProgress({ history, mode, today }: {
-  history: DailyRunEntry[]; mode: "daily" | "archive"; today: string;
+  history: DailyRunEntry[]; mode: "daily" | "archive" | "unlimited"; today: string;
 }) {
   const progress = scoreProgress(history, mode, today);
   const todayMs = Date.parse(`${today}T00:00:00Z`);
@@ -32,7 +32,7 @@ export function ScoreProgress({ history, mode, today }: {
         </figure>
       ) : <p className="text-xs text-muted-foreground">Finish a puzzle to start your trend.</p>}
       <p className="text-[11px] leading-5 text-muted-foreground">
-        Averages use completed {mode === "daily" ? "Dailies" : "Archive puzzles"}. Missed days and unsolved rounds aren’t counted as extra guesses.
+        Averages use completed {mode === "daily" ? "Dailies" : mode === "archive" ? "Archive puzzles" : "Unlimited games"}. Missed days and unsolved rounds aren’t counted as extra guesses.
       </p>
     </section>
   );

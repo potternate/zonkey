@@ -2,7 +2,7 @@ import type { DailyRunEntry } from "./daily-run";
 
 const DAY_MS = 86_400_000;
 
-export function scoreProgress(history: DailyRunEntry[], mode: "daily" | "archive", today: string) {
+export function scoreProgress(history: DailyRunEntry[], mode: "daily" | "archive" | "unlimited", today: string) {
   const todayMs = Date.parse(`${today}T00:00:00Z`);
   const completed = history.filter((run) => run.mode === mode && run.status === "completed" && run.completedAt !== null);
   const dateOf = (run: DailyRunEntry) => mode === "daily" ? run.date : run.completedAt!.slice(0, 10);
