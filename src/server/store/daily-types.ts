@@ -1,6 +1,7 @@
 import type { DailyRunEntry, DailyRunSummary, DailyRunView, DailyScoreResults } from "@/lib/game/daily-run";
-import type { RoundView, StartingPair } from "@/lib/game/types";
+import type { RoundView } from "@/lib/game/types";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
+import type { UnlimitedTheme } from "@/lib/game/themes";
 
 export interface DailyRoundRecord {
   number: number;
@@ -13,10 +14,9 @@ export interface DailyRoundRecord {
 }
 
 export interface DailyRunRecord extends DailyRunEntry {
-  openingWords?: string[];
+  openingWords: string[];
   playerId: string;
   currentRound: number;
-  pairs: StartingPair[];
   rounds: DailyRoundRecord[];
 }
 
@@ -41,10 +41,10 @@ export class DailyConflictError extends Error {
 }
 
 export interface DailyStore {
-  start(playerId: string, date: string, number: number, pairs: StartingPair[], openingWords?: string[]): Promise<{ run: DailyRunRecord; created: boolean }>;
+  start(playerId: string, date: string, number: number, openingWords: string[]): Promise<{ run: DailyRunRecord; created: boolean }>;
+  startUnlimited(playerId: string, openingWords: string[], theme?: UnlimitedTheme, requestId?: string): Promise<DailyRunRecord>;
   get(id: string): Promise<DailyRunRecord | null>;
   cachedAnswer(run: DailyRunRecord): Promise<string | null>;
-  cacheFirstAnswer(run: DailyRunRecord, round: number, answer: string): Promise<void>;
   commitAnswer(position: DailyPosition, answer: string): Promise<void>;
   submit(input: DailySubmission): Promise<RoundView>;
   firstBoard(date: string, round: number): Promise<FirstGuessBoard>;
@@ -54,24 +54,24 @@ export interface DailyStore {
 }
 
 export function dailyBoardKey(date: string, round: number): string {
-  return `daily-v2:${date}:${round}`;
+  return `daily-v3:${date}:${round}`;
 }
 
 export function toDailyView(run: DailyRunRecord): DailyRunView {
   const current = run.rounds.find((round) => round.number === run.currentRound);
-  const playerFirst = run.openingWords !== undefined;
-  const opening = playerFirst && current?.guesses.length === 0;
+  const opening = current?.guesses.length === 0;
   return {
     id: run.id,
     date: run.date,
     puzzleNumber: run.puzzleNumber,
     mode: run.mode,
-    ...(playerFirst ? { playerFirst } : {}),
+    ...(run.theme ? { theme: run.theme } : {}),
+    playerFirst: true,
     status: run.status,
     score: run.score,
     rounds: run.rounds.map((round) => ({
       number: round.number,
-      startPair: playerFirst ? null : run.pairs[round.number - 1],
+      startPair: null,
       status: round.status,
       score: round.score,
       guesses: round.guesses,

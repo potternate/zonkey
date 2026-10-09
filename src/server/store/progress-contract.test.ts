@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { DailyMemoryStore } from "./daily-memory-store";
 import { DailySupabaseStore } from "./daily-supabase-store";
 import type { DailyStore } from "./daily-types";
-import { dailyPairsForPuzzle } from "@/lib/game/daily-run";
+import { presetOpeningWords } from "../opening-words";
 import { puzzleNumberForDate, toIsoDate } from "@/lib/game/daily";
 
 const url = process.env.SUPABASE_TEST_URL;
@@ -19,7 +19,7 @@ for (const [name, makeStore] of stores) {
       const playerId = crypto.randomUUID();
       const today = toIsoDate(new Date());
       const number = puzzleNumberForDate(today);
-      const { run } = await store.start(playerId, today, number, dailyPairsForPuzzle(number));
+      const { run } = await store.start(playerId, today, number, presetOpeningWords(5));
       for (let round = 1; round <= 5; round++) {
         for (let guess = 1; guess <= 5; guess++) {
           const current = (await store.get(run.id))!;

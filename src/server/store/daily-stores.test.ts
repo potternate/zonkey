@@ -4,7 +4,7 @@ import { DailyMemoryStore } from "./daily-memory-store";
 import { DailySupabaseStore } from "./daily-supabase-store";
 import { describeDailyContract } from "./daily-store-contract";
 import { SupabaseStore } from "./supabase-store";
-import { dailyPairsForPuzzle } from "@/lib/game/daily-run";
+import { presetOpeningWords } from "../opening-words";
 import { puzzleNumberForDate, toIsoDate } from "@/lib/game/daily";
 
 describeDailyContract("memory", () => new DailyMemoryStore());
@@ -30,7 +30,7 @@ if (url && key) {
     }).eq("id", legacy.id);
     expect(fixture.error).toBeNull();
     const number = puzzleNumberForDate(today);
-    const { run } = await newStore.start(playerId, today, number, dailyPairsForPuzzle(number));
+    const { run } = await newStore.start(playerId, today, number, presetOpeningWords(5));
     for (let round = 1; round <= 5; round++) {
       let current = (await newStore.get(run.id))!;
       const answer = await newStore.cachedAnswer(current) ?? "water";
@@ -52,16 +52,16 @@ if (url && key) {
 describe.skipIf(!url || !anonKey)("Daily database permissions", () => {
   it("denies browser roles access to private tables and state-changing RPCs", async () => {
     const db = createClient(url!, anonKey!, { auth: { persistSession: false } });
-    for (const table of ["daily_runs", "daily_rounds", "daily_guesses", "daily_ai_answers", "daily_puzzles"]) {
+    for (const table of ["scored_runs", "scored_rounds", "scored_guesses", "scored_ai_answers", "scored_puzzles"]) {
       const { data, error } = await db.from(table).select("*");
       expect(data).toBeNull();
       expect(error?.code).toBe("42501");
     }
-    const { error } = await db.rpc("start_daily_run", {
-      p_player_id: crypto.randomUUID(), p_date: "2026-09-30", p_number: 1, p_pairs: [],
+    const { error } = await db.rpc("start_scored_run", {
+      p_player_id: crypto.randomUUID(), p_date: "2026-09-30", p_number: 1, p_opening_words: [],
     });
     expect(error?.code).toBe("42501");
-    const denied = await db.rpc("daily_score_results", { p_id: crypto.randomUUID(), p_player_id: crypto.randomUUID() });
+    const denied = await db.rpc("scored_daily_results", { p_id: crypto.randomUUID(), p_player_id: crypto.randomUUID() });
     expect(denied.error?.code).toBe("42501");
   });
 });

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryStore } from "./store/memory-store";
 import { DailyMemoryStore } from "./store/daily-memory-store";
-import { startGame, submitAnswer } from "./game-service";
-import { startDaily, submitDaily } from "./daily-service";
+import { startGame } from "./game-service";
+import { startDaily, startUnlimited, submitDaily } from "./daily-service";
 import { GameError } from "./errors";
 import { getPlayerId } from "./http";
 import { POST as startGameRoute } from "@/app/api/games/route";
@@ -24,6 +24,9 @@ let store: MemoryStore;
 let dailyStore: DailyMemoryStore;
 vi.mock("./store", () => ({ getStore: () => store }));
 vi.mock("./store/daily-index", () => ({ getDailyStore: () => dailyStore }));
+vi.mock("./opening-words", () => ({
+  presetOpeningWords: () => ["convergence", "mountain", "coffee", "ocean", "moon"],
+}));
 vi.mock("./auth", () => ({
   plusEnabled: () => state.enabled,
   currentUser: async () => state.userId ? { id: state.userId } : null,
@@ -80,7 +83,7 @@ describe("Plus route enforcement", () => {
     expect(await submitted.json()).toMatchObject({ run: { score: 1000 } });
   });
 
-  it.each(["unlimited", "practice", "daily"])("requires Plus when starting %s through the legacy API", async (mode) => {
+  it.each(["unlimited", "daily"])("requires Plus when starting paid %s through the compatibility API", async (mode) => {
     const body = { mode, ...(mode === "daily" ? { puzzleDate: "2026-09-30" } : {}) };
     expect((await startGameRoute(request(body))).status).toBe(401);
     state.userId = crypto.randomUUID();
@@ -91,15 +94,19 @@ describe("Plus route enforcement", () => {
   });
 
   it("blocks Unlimited resume, preparation and submission before AI work", async () => {
-    const game = await startGame({ playerId, mode: "unlimited" }, false);
+    const game = await startUnlimited(playerId);
     state.userId = crypto.randomUUID();
     expect((await gameRoute(request(), context(game.id))).status).toBe(402);
     expect((await prepareGameRoute(request({}), context(game.id))).status).toBe(402);
-    expect((await submitGameRoute(request({ roundNumber: 1, answer: "convergence" }), context(game.id))).status).toBe(402);
+    expect((await submitGameRoute(request({ round: 1, guess: 1, answer: "convergence" }), context(game.id))).status).toBe(402);
     expect(state.chooseWord).not.toHaveBeenCalled();
     state.plus = true;
     expect((await prepareGameRoute(request({}), context(game.id))).status).toBe(200);
-    expect((await submitGameRoute(request({ roundNumber: 1, answer: "convergence" }), context(game.id))).status).toBe(200);
+    expect((await submitGameRoute(request({ round: 1, guess: 1, answer: "convergence" }), context(game.id))).status).toBe(200);
+    const words = (await dailyStore.get(game.id))!.openingWords;
+    for (let round = 2; round <= 5; round++) {
+      await submitDaily({ playerId, id: game.id, round, guess: 1, answer: words[round - 1] });
+    }
     state.plus = false;
     expect((await gameRoute(request(), context(game.id))).status).toBe(200);
   });
@@ -120,7 +127,7 @@ describe("Plus route enforcement", () => {
     expect((await prepareDailyRoute(request({}), context(run.id))).status).toBe(200);
     expect((await submitDailyRoute(request({ round: 1, guess: 1, answer: "convergence" }), context(run.id))).status).toBe(200);
     for (let round = 2; round <= 5; round++) {
-      await submitDaily({ playerId, id: run.id, round, guess: 1, answer: "convergence" });
+      await submitDaily({ playerId, id: run.id, round, guess: 1, answer: (await dailyStore.get(run.id))!.openingWords[round - 1] });
     }
     state.plus = false;
     state.userId = null;
@@ -129,7 +136,7 @@ describe("Plus route enforcement", () => {
   });
 
   it("rejects foreign game IDs even for a paid account", async () => {
-    const game = await startGame({ playerId: crypto.randomUUID(), mode: "unlimited" }, false);
+    const game = await startUnlimited(crypto.randomUUID());
     state.userId = crypto.randomUUID();
     state.plus = true;
     expect((await gameRoute(request(), context(game.id))).status).toBe(404);
@@ -151,9 +158,10 @@ describe("Plus route enforcement", () => {
     expect(await (await accountRoute(request())).json()).toMatchObject({ restore: true, email: null, playerId: null });
   });
 
-  it("keeps completed legacy results readable without Plus", async () => {
+  it("never routes legacy IDs back into paired gameplay", async () => {
     const game = await startGame({ playerId, mode: "unlimited" });
-    await submitAnswer({ playerId, gameId: game.id, roundNumber: 1, answer: "convergence" });
-    expect((await gameRoute(request(), context(game.id))).status).toBe(200);
+    expect((await gameRoute(request(), context(game.id))).status).toBe(404);
+    expect((await prepareGameRoute(request({}), context(game.id))).status).toBe(404);
+    expect((await submitGameRoute(request({ round: 1, guess: 1, answer: "convergence" }), context(game.id))).status).toBe(404);
   });
 });

@@ -27,7 +27,7 @@ export async function assertDailyAccess(playerId: string, id: string, playing = 
   const run = await getDailyStore().get(id);
   if (!run || run.playerId !== playerId) throw new GameError("not_found", "Game not found.");
   if (!playing && run.status === "completed") return;
-  if (run.mode === "archive" || run.date !== toIsoDate(new Date())) await assertPlusAccess();
+  if (run.mode === "unlimited" || run.mode === "archive" || run.date !== toIsoDate(new Date())) await assertPlusAccess();
 }
 
 export async function assertGameAccess(playerId: string, id: string, playing = false): Promise<void> {

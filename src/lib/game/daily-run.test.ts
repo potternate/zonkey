@@ -35,9 +35,9 @@ describe("five-round Daily rules", () => {
     const pairs = dailyPairsForPuzzle(1);
     const run: DailyRunRecord = {
       id: "run", playerId: "you", date: "2026-09-30", puzzleNumber: 1, mode: "archive",
-      status: "active", currentRound: 1, score: 0, completedAt: null, pairs,
+      status: "active", currentRound: 1, score: 0, completedAt: null, openingWords: Array(5).fill("hiddenword"),
       rounds: pairs.map((pair, index) => ({
-        number: index + 1, wordA: pair.a, wordB: pair.b, aiAnswer: "hiddenword", status: "active", score: 0, guesses: [],
+        number: index + 1, wordA: "", wordB: "", aiAnswer: "hiddenword", status: "active", score: 0, guesses: [],
       })),
     };
     expect(JSON.stringify(toDailyView(run))).not.toContain("hiddenword");

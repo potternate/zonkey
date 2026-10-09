@@ -3,6 +3,7 @@ import { STARTING_PAIRS } from "./pairs";
 import type { DailyStreak } from "./scores";
 import type { RoundView, StartingPair } from "./types";
 import { CURATED_DAILY_FROM, curatedDailyExtras } from "./curated-pairs";
+import type { UnlimitedTheme } from "./themes";
 
 export const DAILY_ROUNDS = 5;
 export const DAILY_GUESSES = 5;
@@ -37,8 +38,9 @@ export interface DailyRound {
 export interface DailyRunView {
   id: string;
   date: string;
-  puzzleNumber: number;
-  mode: "daily" | "archive";
+  puzzleNumber: number | null;
+  mode: "daily" | "archive" | "unlimited";
+  theme?: UnlimitedTheme;
   playerFirst?: boolean;
   status: "active" | "completed";
   score: number;
@@ -62,8 +64,9 @@ export interface DailyScoreResults {
 export interface DailyRunEntry {
   id: string;
   date: string;
-  puzzleNumber: number;
-  mode: "daily" | "archive";
+  puzzleNumber: number | null;
+  mode: "daily" | "archive" | "unlimited";
+  theme?: UnlimitedTheme;
   status: "active" | "completed";
   score: number;
   completedAt: string | null;
@@ -95,7 +98,7 @@ export function buildDailyShareText(run: DailyRunView, url?: string): string {
     ).join(""),
   );
   return [
-    `Zonkey ${run.mode === "archive" ? "Archive " : ""}#${run.puzzleNumber}`,
+    run.mode === "unlimited" ? "Zonkey Unlimited" : `Zonkey ${run.mode === "archive" ? "Archive " : ""}#${run.puzzleNumber}`,
     `${run.score.toLocaleString("en-US")} / 5,000 🦓`,
     "",
     ...rows,

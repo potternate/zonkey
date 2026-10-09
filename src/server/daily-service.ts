@@ -1,12 +1,12 @@
 import "server-only";
 import { dailyArchiveEntry } from "@/lib/game/archive";
 import { toIsoDate } from "@/lib/game/daily";
-import { dailyPairsForPuzzle } from "@/lib/game/daily-run";
 import type { DailyRunView, DailyScoreResults } from "@/lib/game/daily-run";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
 import { validateAnswer } from "@/lib/game/normalize";
-import { OPEN_BOARD, playerFirstDaily } from "@/lib/game/opening";
+import { OPEN_BOARD } from "@/lib/game/opening";
 import type { Reveal } from "@/lib/game/types";
+import type { UnlimitedTheme } from "@/lib/game/themes";
 import type { AnswerReview } from "./ai/types";
 import { getAiPlayer, getAnswerJudge } from "./ai";
 import { pendingAnswer } from "./ai/pending-answer";
@@ -20,7 +20,7 @@ import type { DailyPosition, DailyRunRecord } from "./store/daily-types";
 
 async function owned(playerId: string, id: string): Promise<DailyRunRecord> {
   const run = await getDailyStore().get(id);
-  if (!run || run.playerId !== playerId) throw new GameError("not_found", "Daily not found.");
+  if (!run || run.playerId !== playerId || !run.openingWords) throw new GameError("not_found", "Game not found. Start a new five-round game.");
   return run;
 }
 
@@ -42,18 +42,26 @@ export async function startDaily(playerId: string, date = toIsoDate(new Date()))
   const puzzle = dailyArchiveEntry(date);
   if (!puzzle) throw new GameError("bad_request", "That puzzle is not available.");
   const { run, created } = await getDailyStore().start(
-    playerId, date, puzzle.number, dailyPairsForPuzzle(puzzle.number),
-    playerFirstDaily(puzzle.number) ? presetOpeningWords(5) : undefined,
+    playerId, date, puzzle.number, presetOpeningWords(5),
   );
   if (created) void track({
     name: "daily_started", playerId, gameId: null,
-    properties: { dailyRunId: run.id, mode: run.mode, puzzleNumber: run.puzzleNumber, format: run.openingWords ? 3 : 2 },
+    properties: { dailyRunId: run.id, mode: run.mode, puzzleNumber: run.puzzleNumber, format: 3 },
+  });
+  return toDailyView(run);
+}
+
+export async function startUnlimited(playerId: string, theme?: UnlimitedTheme, requestId?: string): Promise<DailyRunView> {
+  const run = await getDailyStore().startUnlimited(playerId, presetOpeningWords(5, theme), theme, requestId);
+  void track({
+    name: "game_started", playerId, gameId: null,
+    properties: { dailyRunId: run.id, mode: run.mode, theme: theme ?? null, format: 3 },
   });
   return toDailyView(run);
 }
 
 async function chooseDailyAnswer(run: DailyRunRecord, round: number, guess: number, wordA: string, wordB: string): Promise<string> {
-  const key = JSON.stringify(["daily", run.date, round, guess, wordA, wordB]);
+  const key = JSON.stringify(["scored", run.mode === "unlimited" ? run.id : run.date, round, guess, wordA, wordB]);
   return pendingAnswer(key, async () => {
     await assertAiQuota(run.playerId);
     let answer: string;
@@ -68,28 +76,14 @@ async function chooseDailyAnswer(run: DailyRunRecord, round: number, guess: numb
   });
 }
 
-export async function warmDailyOpenings(playerId: string, id: string): Promise<void> {
-  const store = getDailyStore();
-  const run = await owned(playerId, id);
-  if (run.status !== "active" || run.openingWords) return;
-  await Promise.allSettled(run.pairs.map(async (pair, index) => {
-    const number = index + 1;
-    if (number <= run.currentRound) return;
-    const opening = { ...run, currentRound: number };
-    if (await store.cachedAnswer(opening) !== null) return;
-    const answer = await chooseDailyAnswer(run, number, 1, pair.a, pair.b);
-    await store.cacheFirstAnswer(run, number, answer);
-  }));
-}
-
 export async function prepareDaily(playerId: string, id: string): Promise<DailyRunView> {
   const store = getDailyStore();
   const run = await owned(playerId, id);
   if (run.status !== "active") return toDailyView(run);
   const round = run.rounds[run.currentRound - 1];
   if (round.aiAnswer !== null) return toDailyView(run);
-  const opening = run.openingWords !== undefined && round.guesses.length === 0;
-  let answer = opening ? run.openingWords![run.currentRound - 1] : await store.cachedAnswer(run);
+  const opening = round.guesses.length === 0;
+  let answer = opening ? run.openingWords[run.currentRound - 1] : await store.cachedAnswer(run);
   if (answer === null) {
     answer = await chooseDailyAnswer(run, run.currentRound, round.guesses.length + 1, round.wordA, round.wordB);
   }
@@ -112,7 +106,7 @@ export async function submitDaily(input: DailyPosition & { answer: string }): Pr
   if (run.status !== "active" || run.currentRound !== input.round || round.guesses.length + 1 !== input.guess) {
     throw new GameError("conflict", "That guess is already done.");
   }
-  const opening = run.openingWords !== undefined && input.guess === 1;
+  const opening = input.guess === 1;
   const endpoints = opening ? OPEN_BOARD : [round.wordA, round.wordB] as const;
   const validation = validateAnswer(input.answer, endpoints);
   if (!validation.ok) throw new GameError("invalid_answer", validation.error);
@@ -126,15 +120,15 @@ export async function submitDaily(input: DailyPosition & { answer: string }): Pr
     if (round.aiAnswer === null) throw new GameError("ai_unavailable", "The AI couldn't think of a word. Try again.");
   }
   for (let retry = 0; retry < 3; retry++) {
-    const boardAttempts = input.guess === 1 ? (await store.firstBoard(run.date, input.round)).attempts : null;
-    const boardWords = input.guess === 1 && !opening ? await store.firstWords(run.date, input.round) : [];
+    const boardDate = run.mode === "unlimited" ? "unlimited" : run.date;
+    const boardAttempts = input.guess === 1 ? (await store.firstBoard(boardDate, input.round)).attempts : null;
     let review: AnswerReview = { word: validation.word, boardWord: null, semanticMatch: false };
     if (!opening) {
       await assertAiQuota(input.playerId);
       try {
         review = await getAnswerJudge().reviewAnswer({
           answer: validation.word, wordA: round.wordA, wordB: round.wordB, aiAnswer: round.aiAnswer,
-          roundNumber: input.guess, boardWords,
+          roundNumber: input.guess, boardWords: [],
         });
       } catch {
         throw new GameError("ai_unavailable", "Couldn't check your guess. No guess was used—try again.");
@@ -148,7 +142,7 @@ export async function submitDaily(input: DailyPosition & { answer: string }): Pr
         semanticMatched: input.guess > 1 && review.semanticMatch, boardAttempts,
       });
       const next = await getDaily(input.playerId, input.id);
-      const properties = { dailyRunId: run.id, format: run.openingWords ? 3 : 2, round: input.round, guess: input.guess, matched: guess.matched };
+      const properties = { dailyRunId: run.id, mode: run.mode, format: 3, round: input.round, guess: input.guess, matched: guess.matched };
       void track({ name: "daily_guess_submitted", playerId: input.playerId, gameId: null, properties });
       if (next.rounds[input.round - 1].status !== "active") void track({
         name: "daily_round_completed", playerId: input.playerId, gameId: null,
@@ -156,12 +150,12 @@ export async function submitDaily(input: DailyPosition & { answer: string }): Pr
       });
       if (next.status === "completed") void track({
         name: "daily_completed", playerId: input.playerId, gameId: null,
-        properties: { dailyRunId: run.id, format: run.openingWords ? 3 : 2, score: next.score, mode: next.mode },
+        properties: { dailyRunId: run.id, format: 3, score: next.score, mode: next.mode },
       });
       return {
         run: next,
         reveal: { roundNumber: input.guess, playerAnswer: guess.playerAnswer, aiAnswer: guess.aiAnswer, matched: guess.matched },
-        ...(input.guess === 1 ? { firstGuesses: await store.firstBoard(run.date, input.round) } : {}),
+        ...(input.guess === 1 ? { firstGuesses: await store.firstBoard(boardDate, input.round) } : {}),
       };
     } catch (err) {
       if (err instanceof DailyConflictError && err.code === "board_changed" && retry < 2) continue;
@@ -183,5 +177,5 @@ export async function dailyResults(playerId: string, id: string): Promise<DailyS
 export async function shareDaily(playerId: string, id: string): Promise<void> {
   const run = await owned(playerId, id);
   if (run.status !== "completed") throw new GameError("conflict", "Finish your Daily first.");
-  await track({ name: "share_clicked", playerId, gameId: null, properties: { dailyRunId: id, format: run.openingWords ? 3 : 2 } });
+  await track({ name: "share_clicked", playerId, gameId: null, properties: { dailyRunId: id, format: 3, mode: run.mode } });
 }

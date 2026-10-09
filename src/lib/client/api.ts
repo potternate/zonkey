@@ -99,6 +99,7 @@ export const api = {
   confirmCheckout: (sessionId: string) =>
     request<{ plus: boolean }>("/api/checkout/confirm", { method: "POST", body: { sessionId } }),
   startDaily: (date?: string) => request<{ run: DailyRunView }>("/api/daily", { method: "POST", body: { date } }),
+  startUnlimited: (theme?: UnlimitedTheme, requestId?: string) => request<{ run: DailyRunView }>("/api/daily", { method: "POST", body: { mode: "unlimited", theme, requestId } }),
   getDaily: (id: string) => request<{ run: DailyRunView }>(`/api/daily/${id}`),
   prepareDaily: (id: string) => recoverRequest(() => request<{ run: DailyRunView }>(`/api/daily/${id}/prepare`, { method: "POST" })),
   submitDaily: (id: string, round: number, guess: number, answer: string) =>

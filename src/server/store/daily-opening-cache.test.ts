@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { puzzleNumberForDate, toIsoDate } from "@/lib/game/daily";
-import { dailyPairsForPuzzle } from "@/lib/game/daily-run";
+import { presetOpeningWords } from "../opening-words";
 import { DailyMemoryStore } from "./daily-memory-store";
 import { DailySupabaseStore } from "./daily-supabase-store";
 import { toDailyView } from "./daily-types";
@@ -8,23 +8,16 @@ import type { DailyStore } from "./daily-types";
 
 function cacheContract(name: string, makeStore: () => DailyStore) {
   describe(`${name} opening answer cache`, () => {
-    it("preserves the first cached choice without exposing or applying a future answer early", async () => {
+    it("commits all five preset words at creation and never exposes a future answer early", async () => {
       const store = makeStore();
       const date = toIsoDate(new Date());
       const number = puzzleNumberForDate(date);
-      const { run } = await store.start(crypto.randomUUID(), date, number, dailyPairsForPuzzle(number));
+      const { run } = await store.start(crypto.randomUUID(), date, number, presetOpeningWords(5));
       const opening = { ...run, currentRound: 2 };
-      const existing = await store.cachedAnswer(opening);
-      await Promise.all([
-        store.cacheFirstAnswer(run, 2, "convergence"),
-        store.cacheFirstAnswer(run, 2, "meeting"),
-      ]);
       const canonical = await store.cachedAnswer(opening);
-      expect(existing ? [existing] : ["convergence", "meeting"]).toContain(canonical);
-      await store.cacheFirstAnswer(run, 2, "different");
-      expect(await store.cachedAnswer(opening)).toBe(canonical);
+      expect(canonical).toBe(run.openingWords[1]);
       const fresh = (await store.get(run.id))!;
-      expect(fresh.rounds[1].aiAnswer).toBeNull();
+      expect(fresh.rounds[1].aiAnswer).toBe(canonical);
       expect(toDailyView(fresh).rounds[1].guesses).toEqual([]);
       expect(toDailyView(fresh).rounds[1]).not.toHaveProperty("aiAnswer");
       const first = await store.cachedAnswer(run) ?? "bridge";

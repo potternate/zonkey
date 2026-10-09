@@ -17,7 +17,7 @@ export function Landing({
   plusEnabled: boolean;
   plus: boolean;
 }) {
-  const daily = scores?.dailyRuns ? scores.dailyRuns.history.find((run) => run.date === scores.dailyDate) : scores?.dailyGame;
+  const daily = scores?.dailyRuns?.history.find((run) => run.mode === "daily" && run.date === scores.dailyDate);
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
   const puzzleNumber = scores ? puzzleNumberForDate(scores.dailyDate) : null;
   return (

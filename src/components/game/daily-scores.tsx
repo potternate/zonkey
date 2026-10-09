@@ -3,7 +3,7 @@ import type { DailyRunEntry } from "@/lib/game/daily-run";
 import { ScoreProgress } from "./score-progress";
 
 export function DailyScores({ history, mode, today, onResult }: {
-  history: DailyRunEntry[]; mode: "daily" | "archive"; today: string; onResult: (date: string) => void;
+  history: DailyRunEntry[]; mode: "daily" | "archive" | "unlimited"; today: string; onResult: (date: string) => void;
 }) {
   const completed = history.filter((run) => run.mode === mode && run.status === "completed");
   const summary = [
@@ -23,8 +23,8 @@ export function DailyScores({ history, mode, today, onResult }: {
       <ul className="divide-y border-y">
         {history.filter((run) => run.mode === mode).slice(0, 10).map((run) => (
           <li key={run.id}>
-            <Button variant="ghost" onClick={() => onResult(run.date)} className="min-h-16 w-full justify-between gap-3 whitespace-normal px-2 text-left">
-              <span>{mode === "daily" ? "Daily" : "Archive"} #{run.puzzleNumber}<span className="mt-1 block text-xs font-normal text-muted-foreground">{run.date}</span></span>
+            <Button variant="ghost" onClick={() => onResult(mode === "unlimited" ? run.id : run.date)} className="min-h-16 w-full justify-between gap-3 whitespace-normal px-2 text-left">
+              <span>{mode === "unlimited" ? "Unlimited" : `${mode === "daily" ? "Daily" : "Archive"} #${run.puzzleNumber}`}<span className="mt-1 block text-xs font-normal text-muted-foreground">{run.date}</span></span>
               <span className="shrink-0 font-bold text-success tabular-nums">{run.status === "active" ? "Resume" : `${run.score.toLocaleString("en-US")} pts`}</span>
             </Button>
           </li>

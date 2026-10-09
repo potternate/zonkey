@@ -11,13 +11,15 @@ import { GameHeader } from "./header";
 import { RoundScreen } from "./round-screen";
 import { RevealScreen } from "./reveal-screen";
 import { DailyResult } from "./daily-result";
+import { THEME_LABELS, type UnlimitedTheme } from "@/lib/game/themes";
 
 function messageOf(err: unknown): string {
   return err instanceof ApiError ? err.message : "Something went wrong. Try again.";
 }
 
-export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
+export function DailyGame({ date, id, mode = "daily", theme, onHome, onUnlimited, onProgress }: {
   date?: string; onHome: () => void; onUnlimited: () => void; onProgress: () => void;
+  id?: string; mode?: "daily" | "unlimited"; theme?: UnlimitedTheme;
 }) {
   const [run, setRun] = useState<DailyRunView | null>(null);
   const [reveal, setReveal] = useState<{ round: number; reveal: Reveal; firstGuesses?: FirstGuessBoard } | null>(null);
@@ -27,6 +29,7 @@ export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
   const [submitting, setSubmitting] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [loadRetry, setLoadRetry] = useState(0);
+  const [requestId] = useState(() => crypto.randomUUID());
   const [prepareRetry, setPrepareRetry] = useState(0);
   const runId = run?.id;
   const roundNumber = run?.current?.round;
@@ -34,13 +37,17 @@ export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
 
   useEffect(() => {
     let cancelled = false;
-    api.startDaily(date).then(({ run: next }) => {
-      if (!cancelled) { setRun(next); setLoadError(null); }
+    const start = id ? api.getDaily(id) : mode === "unlimited" ? api.startUnlimited(theme, requestId) : api.startDaily(date);
+    start.then(({ run: next }) => {
+      if (!cancelled) {
+        setRun(next); setLoadError(null);
+        if (next.mode === "unlimited") window.history.replaceState(null, "", `/?run=${next.id}`);
+      }
     }).catch((err: unknown) => {
       if (!cancelled) setLoadError(messageOf(err));
     });
     return () => { cancelled = true; };
-  }, [date, loadRetry]);
+  }, [date, id, mode, theme, requestId, loadRetry]);
 
   useEffect(() => {
     if (run?.status === "completed") onProgress();
@@ -98,7 +105,7 @@ export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
   const finishedRound = run.rounds[displayRound - 1];
   return (
     <>
-      <GameHeader round={displayRound} maxRounds={5} label={`${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} summary={`${run.score.toLocaleString("en-US")} / 5,000 pts`} />
+      <GameHeader round={displayRound} maxRounds={5} label={run.mode === "unlimited" ? `UNLIMITED${run.theme ? ` · ${THEME_LABELS[run.theme]}` : ""}` : `${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} summary={`${run.score.toLocaleString("en-US")} / 5,000 pts`} />
       {!reveal && run.current && (
         <>
           <p className="mt-3 text-xs text-muted-foreground">Guess {run.current.guess} / 5 · {DAILY_POINTS[run.current.guess - 1]} pts</p>

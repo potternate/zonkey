@@ -1,4 +1,3 @@
-import "server-only";
 import { randomInt } from "node:crypto";
 import { STARTING_PAIRS } from "@/lib/game/pairs";
 import { THEMED_PAIRS, type UnlimitedTheme } from "@/lib/game/themes";

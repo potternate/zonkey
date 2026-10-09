@@ -18,6 +18,9 @@ let store: MemoryStore;
 const { chooseWord, reviewAnswer } = vi.hoisted(() => ({ chooseWord: vi.fn(), reviewAnswer: vi.fn() }));
 vi.mock("./store/daily-index", () => ({ getDailyStore: () => dailyStore }));
 vi.mock("./store", () => ({ getStore: () => store }));
+vi.mock("./opening-words", () => ({
+  presetOpeningWords: () => ["zebra", "mountain", "coffee", "ocean", "moon"],
+}));
 vi.mock("./ai", () => ({
   getAiPlayer: () => ({ id: "test", chooseWord }),
   getAnswerJudge: () => ({ reviewAnswer }),
@@ -39,11 +42,13 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("five-round Daily service", () => {
-  it("backfills valid past dates, preserves five pairs, resumes, and rejects unavailable dates", async () => {
+  it("backfills valid past dates with five hidden openings, resumes, and rejects unavailable dates", async () => {
     const playerId = crypto.randomUUID();
     const archive = await startDaily(playerId, "2026-09-30");
     expect(archive).toMatchObject({ mode: "archive", puzzleNumber: 1 });
     expect(archive.rounds).toHaveLength(5);
+    expect(archive.current).toMatchObject({ opening: true, wordA: "", wordB: "" });
+    expect(archive.rounds.every((round) => round.startPair === null)).toBe(true);
     expect((await startDaily(playerId, "2026-09-30")).id).toBe(archive.id);
     const today = await startDaily(playerId);
     expect(today.mode).toBe("daily");
@@ -60,6 +65,12 @@ describe("five-round Daily service", () => {
     expect(a.current).not.toHaveProperty("aiAnswer");
     expect(a.rounds[0].guesses).toEqual([]);
     await prepareDaily(players[1], runs[1].id);
+    expect(chooseWord).not.toHaveBeenCalled();
+    await Promise.all(players.map((playerId, index) => submitDaily({
+      id: runs[index].id, playerId, round: 1, guess: 1, answer: "beach",
+    })));
+    await prepareDaily(players[0], runs[0].id);
+    await prepareDaily(players[1], runs[1].id);
     expect(chooseWord).toHaveBeenCalledTimes(1);
     await expect(getDaily(players[1], a.id)).rejects.toMatchObject({ code: "not_found" });
     await expect(prepareDaily(players[1], a.id)).rejects.toMatchObject({ code: "not_found" });
@@ -68,32 +79,32 @@ describe("five-round Daily service", () => {
   it("doesn't consume a guess on validation or AI failures, and enforces quotas", async () => {
     const playerId = crypto.randomUUID();
     const run = await startDaily(playerId);
+    const input = { id: run.id, playerId, round: 1, guess: 1 };
+    await expect(submitDaily({ ...input, answer: "two words" })).rejects.toMatchObject({ code: "invalid_answer" });
+    await submitDaily({ ...input, answer: "beach" });
     chooseWord.mockRejectedValueOnce(new Error("offline"));
     await expect(prepareDaily(playerId, run.id)).rejects.toMatchObject({ code: "ai_unavailable" });
     await prepareDaily(playerId, run.id);
-    const input = { id: run.id, playerId, round: 1, guess: 1 };
-    await expect(submitDaily({ ...input, answer: "two words" })).rejects.toMatchObject({ code: "invalid_answer" });
     reviewAnswer.mockRejectedValueOnce(new Error("offline"));
-    await expect(submitDaily({ ...input, answer: "beach" })).rejects.toMatchObject({ code: "ai_unavailable" });
-    expect((await getDaily(playerId, run.id)).current?.guess).toBe(1);
+    await expect(submitDaily({ ...input, guess: 2, answer: "ship" })).rejects.toMatchObject({ code: "ai_unavailable" });
+    expect((await getDaily(playerId, run.id)).current?.guess).toBe(2);
     vi.spyOn(store, "consumeAiQuota").mockResolvedValueOnce(false);
-    await expect(submitDaily({ ...input, answer: "beach" })).rejects.toMatchObject({ code: "rate_limited" });
-    expect((await dailyStore.firstBoard(run.date, 1)).attempts).toBe(0);
+    await expect(submitDaily({ ...input, guess: 2, answer: "ship" })).rejects.toMatchObject({ code: "rate_limited" });
+    expect((await dailyStore.firstBoard(run.date, 1)).attempts).toBe(1);
   });
 
   it("normalizes and canonically counts first guesses, and judges later semantic matches", async () => {
     const playerId = crypto.randomUUID();
     const run = await startDaily(playerId);
     await prepareDaily(playerId, run.id);
-    reviewAnswer.mockResolvedValueOnce({ word: "beach", boardWord: null, semanticMatch: false });
     const first = await submitDaily({ id: run.id, playerId, round: 1, guess: 1, answer: "Beech!" });
-    expect(first.firstGuesses).toEqual({ attempts: 1, guesses: [{ word: "beach", count: 1 }] });
+    expect(first.firstGuesses).toEqual({ attempts: 1, guesses: [{ word: "beech", count: 1 }] });
     const otherId = crypto.randomUUID();
     const other = await startDaily(otherId);
     await prepareDaily(otherId, other.id);
-    reviewAnswer.mockResolvedValueOnce({ word: "beach", boardWord: "beach", semanticMatch: false });
-    await submitDaily({ id: other.id, playerId: otherId, round: 1, guess: 1, answer: "shore" });
-    expect(reviewAnswer).toHaveBeenLastCalledWith(expect.objectContaining({ boardWords: ["beach"] }));
+    await submitDaily({ id: other.id, playerId: otherId, round: 1, guess: 1, answer: "beech" });
+    expect((await dailyStore.firstBoard(run.date, 1)).guesses).toEqual([{ word: "beech", count: 2 }]);
+    expect(reviewAnswer).not.toHaveBeenCalled();
     await prepareDaily(playerId, run.id);
     reviewAnswer.mockResolvedValueOnce({ word: "ship", boardWord: null, semanticMatch: true });
     const second = await submitDaily({ id: run.id, playerId, round: 1, guess: 2, answer: "ship" });
@@ -124,7 +135,7 @@ describe("five-round Daily service", () => {
     expect((await startDaily(playerId)).id).not.toBe(run.id);
   });
 
-  it("rejudges first guesses when another user changes the global board", async () => {
+  it("retries concurrent first-guess board updates without judging or changing the player's word", async () => {
     const players = [crypto.randomUUID(), crypto.randomUUID()];
     const runs = await Promise.all(players.map((playerId) => startDaily(playerId)));
     await Promise.all(runs.map((run, index) => prepareDaily(players[index], run.id)));
@@ -134,8 +145,8 @@ describe("five-round Daily service", () => {
     await Promise.all(runs.map((run, index) => submitDaily({
       id: run.id, playerId: players[index], round: 1, guess: 1, answer: ["beach", "shore"][index],
     })));
-    expect(reviewAnswer).toHaveBeenCalledTimes(3);
-    expect((await dailyStore.firstBoard(runs[0].date, 1)).guesses).toEqual([{ word: "beach", count: 2 }]);
+    expect(reviewAnswer).not.toHaveBeenCalled();
+    expect((await dailyStore.firstBoard(runs[0].date, 1)).guesses).toEqual([{ word: "beach", count: 1 }, { word: "shore", count: 1 }]);
   });
 
   it("enforces HTTP ownership and guess bounds, ignores client scoring, and merges saved scores", async () => {
@@ -161,7 +172,9 @@ describe("five-round Daily service", () => {
     const answer = (await dailyStore.get(run.id))!.rounds[0].aiAnswer!;
     const submitted = await submitRoute(request({ round: 1, guess: 1, answer, score: 5000, status: "completed" }), ctx);
     expect(await submitted.json()).toMatchObject({ run: { score: 1000, status: "active", current: { round: 2 } } });
-    expect((await legacyStartRoute(request({ mode: "daily" }))).status).toBe(409);
+    const compatibleStart = await legacyStartRoute(request({ mode: "daily" }));
+    expect(compatibleStart.status).toBe(200);
+    expect(await compatibleStart.json()).toMatchObject({ run: { id: run.id, playerFirst: true } });
     const scores = await scoresRoute(new Request("http://localhost/api/scores", { headers }));
     expect(await scores.json()).toMatchObject({ scores: { dailyRuns: { history: [{ score: 1000, status: "active" }] } } });
   });
