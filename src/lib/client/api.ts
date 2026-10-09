@@ -39,7 +39,7 @@ async function request<T>(path: string, init?: { method?: string; body?: unknown
       signal: controller.signal,
     });
     data = (await res.json().catch((error: unknown) => {
-      if (controller.signal.aborted) throw error;
+      if (controller.signal.aborted || res.ok) throw error;
       return {};
     })) as T & { error?: string; code?: string };
   } catch {

@@ -50,6 +50,14 @@ describe("client request recovery", () => {
     expect(fetchMock.mock.calls.filter(([, init]) => init.method === "POST")).toHaveLength(1);
   });
 
+  it("reconciles a truncated success response rather than returning an empty game", async () => {
+    const { api } = await import("./api");
+    fetchMock.mockResolvedValueOnce(new Response('{"game":', { status: 200 }))
+      .mockResolvedValueOnce(response({ game }));
+    expect(await api.submit("game", 1, "music")).toMatchObject({ game, reveal: { playerAnswer: "music" } });
+    expect(fetchMock.mock.calls.filter(([, init]) => init.method === "POST")).toHaveLength(1);
+  });
+
   it("recovers the original Daily guess when a duplicate finds the next round already open", async () => {
     const { api } = await import("./api");
     fetchMock.mockResolvedValueOnce(response({ code: "conflict", error: "Already done" }, 409))
