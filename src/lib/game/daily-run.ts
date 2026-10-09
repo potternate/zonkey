@@ -2,6 +2,7 @@ import { pairForPuzzle } from "./daily";
 import { STARTING_PAIRS } from "./pairs";
 import type { DailyStreak } from "./scores";
 import type { RoundView, StartingPair } from "./types";
+import { CURATED_DAILY_FROM, curatedDailyExtras } from "./curated-pairs";
 
 export const DAILY_ROUNDS = 5;
 export const DAILY_GUESSES = 5;
@@ -9,6 +10,10 @@ export const DAILY_MAX_SCORE = 5_000;
 export const DAILY_POINTS = [1_000, 800, 600, 400, 200] as const;
 
 export function dailyPairsForPuzzle(number: number): StartingPair[] {
+  if (number >= CURATED_DAILY_FROM) {
+    const first = pairForPuzzle(number);
+    return [first, ...curatedDailyExtras(number, first)];
+  }
   return [
     pairForPuzzle(number),
     ...Array.from({ length: DAILY_ROUNDS - 1 }, (_, index) =>
@@ -60,6 +65,8 @@ export interface DailyRunEntry {
   status: "active" | "completed";
   score: number;
   completedAt: string | null;
+  solvedRounds?: number;
+  solvedGuesses?: number;
 }
 
 export interface DailyRunSummary {

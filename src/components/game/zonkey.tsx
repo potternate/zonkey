@@ -14,8 +14,10 @@ import { RoundScreen } from "./round-screen";
 import { ScoresScreen } from "./scores-screen";
 import { BrandHeader } from "./brand-header";
 import { DailyGame } from "./daily-game";
+import { UnlimitedPicker } from "./unlimited-picker";
+import { THEME_LABELS, type UnlimitedTheme } from "@/lib/game/themes";
 
-type Phase = "landing" | "play" | "reveal" | "result" | "scores" | "daily";
+type Phase = "landing" | "play" | "reveal" | "result" | "scores" | "daily" | "unlimited";
 
 function messageOf(err: unknown): string {
   return err instanceof ApiError ? err.message : "Something went wrong.";
@@ -104,7 +106,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
   }, [showGame]);
 
   const start = useCallback(
-    async (mode: GameMode, puzzleDate?: string) => {
+    async (mode: GameMode, puzzleDate?: string, theme?: UnlimitedTheme) => {
       if (mode === "daily") {
         setDailyDate(puzzleDate);
         setPhase("daily");
@@ -113,7 +115,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
       setStarting(true);
       setStartError(null);
       try {
-        const { game: g } = await api.startGame(mode, puzzleDate);
+        const { game: g } = await api.startGame(mode, puzzleDate, theme);
         setReveal(null);
         showGame(g);
       } catch (err) {
@@ -171,14 +173,20 @@ export function Zonkey({ children }: { children?: ReactNode }) {
     void refreshScores();
   };
 
+  const chooseUnlimited = () => {
+    setStartError(null);
+    setPhase("unlimited");
+  };
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-10">
       <BrandHeader onHome={goHome} onScores={() => { setPhase("scores"); void refreshScores(); }} home={phase === "landing"} disabled={submitting || starting} />
       <div className={cn("flex w-full flex-1 flex-col", phase !== "landing" && "mx-auto max-w-lg")}>
-        {phase === "daily" && <DailyGame key={dailyDate ?? "today"} date={dailyDate} onHome={goHome} onUnlimited={() => void start("unlimited")} onProgress={refreshScores} />}
+        {phase === "daily" && <DailyGame key={dailyDate ?? "today"} date={dailyDate} onHome={goHome} onUnlimited={chooseUnlimited} onProgress={refreshScores} />}
         {phase === "landing" && (
-          <Landing onPlay={start} onScores={() => setPhase("scores")} scores={scores} busy={starting} error={startError} plusEnabled={account?.enabled ?? false} plus={account?.plus ?? false} />
+          <Landing onPlay={(mode) => mode === "unlimited" ? chooseUnlimited() : void start(mode)} onScores={() => setPhase("scores")} scores={scores} busy={starting} error={startError} plusEnabled={account?.enabled ?? false} plus={account?.plus ?? false} />
         )}
+        {phase === "unlimited" && <UnlimitedPicker onChoose={(theme) => void start("unlimited", undefined, theme ?? undefined)} onHome={goHome} busy={starting} error={startError} />}
 
         {phase === "scores" && (
           <ScoresScreen scores={scores} error={scoresError} onHome={goHome} onRetry={refreshScores} onResult={openGame} onDailyResult={(date) => void start("daily", date)} />
@@ -188,7 +196,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
           <GameHeader
             round={phase === "reveal" && reveal ? reveal.roundNumber : (game.current?.number ?? game.rounds.length)}
             maxRounds={game.maxRounds}
-            label={gameLabel(game.mode, game.puzzleNumber)}
+            label={game.theme ? `Unlimited · ${THEME_LABELS[game.theme]}` : gameLabel(game.mode, game.puzzleNumber)}
           />
         )}
 
@@ -209,7 +217,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
         )}
 
         {game && phase === "result" && (
-          <ResultScreen game={game} scores={scores} onHome={goHome} onPlayAgain={() => start("unlimited")} busy={starting} error={startError} />
+          <ResultScreen game={game} scores={scores} onHome={goHome} onPlayAgain={() => start("unlimited", undefined, game.theme)} busy={starting} error={startError} />
         )}
       </div>
       {phase === "landing" && children}

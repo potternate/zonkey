@@ -1,7 +1,9 @@
 import { findStartingPair } from "./pairs";
 import type { CurrentRoundView, GameMode, GameStatus, GameView, RoundView } from "./types";
+import type { UnlimitedTheme } from "./themes";
 
 export interface GameRecord {
+  theme?: UnlimitedTheme;
   id: string;
   playerId: string;
   mode: GameMode;
@@ -51,6 +53,7 @@ export function toGameView(game: GameRecord, rounds: RoundRecord[], maxRounds: n
     }
   }
   return {
+    ...(game.theme ? { theme: game.theme } : {}),
     id: game.id,
     mode: game.mode,
     puzzleNumber: game.puzzleNumber,

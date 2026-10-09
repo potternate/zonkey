@@ -123,6 +123,8 @@ export class DailyMemoryStore implements DailyStore {
     const history: DailyRunEntry[] = owned.sort((a, b) => b.date.localeCompare(a.date)).map((run) => ({
       id: run.id, date: run.date, puzzleNumber: run.puzzleNumber, mode: run.mode,
       status: run.status, score: run.score, completedAt: run.completedAt,
+      solvedRounds: run.rounds.filter((round) => round.status === "won").length,
+      solvedGuesses: run.rounds.filter((round) => round.status === "won").reduce((sum, round) => sum + round.guesses.length, 0),
     }));
     const dates = owned.filter((run) => run.mode === "daily" && run.completedAt?.slice(0, 10) === run.date).map((run) => run.date);
     return { history, streak: streakForDates([...dates, ...await this.legacyDates(playerId)], today) };

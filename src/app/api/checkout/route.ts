@@ -7,7 +7,7 @@ import { withErrors } from "@/server/http";
 
 export const POST = withErrors(async (req: Request) => {
   requireSameOrigin(req);
-  if (!plusEnabled()) throw new GameError("not_configured", "Zonkey Plus is coming soon.");
+  if (!plusEnabled()) throw new GameError("not_found", "Not found.");
   const user = await requireUser();
   if (await hasPlusAccess(user.id)) throw new GameError("conflict", "Zonkey Plus is already unlocked.");
   const origin = siteUrl();

@@ -28,6 +28,9 @@ export function PlusScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [next, setNext] = useState("/");
   const [confirmRetry, setConfirmRetry] = useState(0);
+  useEffect(() => {
+    if (account && !account.enabled) window.location.replace(returnPath());
+  }, [account]);
 
   const refresh = useCallback(async () => {
     const value = await api.account();
@@ -46,7 +49,7 @@ export function PlusScreen() {
 
   useEffect(() => {
     const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId || !account?.email || account.plus) return;
+    if (!sessionId || !account?.enabled || !account.email || account.plus) return;
     let cancelled = false;
     setBusy(true);
     setError(null);
@@ -65,7 +68,7 @@ export function PlusScreen() {
       if (!cancelled) setBusy(false);
     });
     return () => { cancelled = true; };
-  }, [account?.email, account?.plus, confirmRetry, refresh]);
+  }, [account?.enabled, account?.email, account?.plus, confirmRetry, refresh]);
 
   async function signIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -113,6 +116,8 @@ export function PlusScreen() {
     finally { setBusy(false); }
   }
 
+  if (account && !account.enabled) return null;
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-5 py-6 sm:py-10">
       <Link href="/" className="min-h-11 text-3xl font-bold tracking-tight">zonkey</Link>
@@ -157,7 +162,7 @@ export function PlusScreen() {
             <p className="text-xs leading-5 text-muted-foreground">Already bought Plus? Sign in with the same email to restore access.</p>
           </form>
         ) : (
-          <p role="status" className="text-sm text-muted-foreground">{account ? "Zonkey Plus is coming soon." : "Loading your account…"}</p>
+          <p role="status" className="text-sm text-muted-foreground">Loading your account…</p>
         )}
         {account?.email && <div className="mt-5 text-center text-xs text-muted-foreground">
           <p className="break-all">{account.email}</p>

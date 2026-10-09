@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import type { DailyRunEntry } from "@/lib/game/daily-run";
+import { ScoreProgress } from "./score-progress";
 
-export function DailyScores({ history, mode, onResult }: {
-  history: DailyRunEntry[]; mode: "daily" | "archive"; onResult: (date: string) => void;
+export function DailyScores({ history, mode, today, onResult }: {
+  history: DailyRunEntry[]; mode: "daily" | "archive"; today: string; onResult: (date: string) => void;
 }) {
   const completed = history.filter((run) => run.mode === mode && run.status === "completed");
   const summary = [
@@ -18,6 +19,7 @@ export function DailyScores({ history, mode, onResult }: {
         ))}
       </dl>
       <p className="text-center text-xs text-muted-foreground">Points out of 5,000. Higher is better.</p>
+      <ScoreProgress history={history} mode={mode} today={today} />
       <ul className="divide-y border-y">
         {history.filter((run) => run.mode === mode).slice(0, 10).map((run) => (
           <li key={run.id}>

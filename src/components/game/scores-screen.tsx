@@ -53,7 +53,7 @@ export function ScoresScreen({
       </div>
       {scores && (
         <>
-          {fiveRound && <DailyScores history={scores.dailyRuns!.history} mode={mode} onResult={onDailyResult} />}
+          {fiveRound && <DailyScores history={scores.dailyRuns!.history} mode={mode} today={scores.dailyDate} onResult={onDailyResult} />}
           {!fiveRound && <ScoreSummary scores={scores[mode]} />}
           {mode === "daily" && <DailyStreakSummary streak={scores.dailyStreak} />}
           {!fiveRound && <p className="text-center text-xs text-muted-foreground">Best and average are rounds to connect. Lower is better.</p>}

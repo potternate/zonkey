@@ -5,6 +5,7 @@ import { getPlayerId, withErrors } from "@/server/http";
 import { GameError } from "@/server/errors";
 
 export const GET = withErrors(async (req: Request) => {
+  const enabled = plusEnabled();
   const user = await currentUser();
   let playerId: string | null = null;
   let restore = false;
@@ -15,9 +16,9 @@ export const GET = withErrors(async (req: Request) => {
     else throw error;
   }
   return NextResponse.json({
-    enabled: plusEnabled(),
-    email: user?.email ?? null,
-    plus: user ? await hasPlusAccess(user.id) : false,
+    enabled,
+    email: enabled ? user?.email ?? null : null,
+    plus: enabled && user ? await hasPlusAccess(user.id) : false,
     playerId,
     restore,
   }, { headers: { "Cache-Control": "no-store" } });
