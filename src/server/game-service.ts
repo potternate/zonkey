@@ -5,6 +5,7 @@ import { dailyArchiveEntry } from "@/lib/game/archive";
 import type { DailyResults } from "@/lib/game/daily-results";
 import { firstGuessBoardKey } from "@/lib/game/first-guesses";
 import { validateAnswer } from "@/lib/game/normalize";
+import { OPEN_BOARD } from "@/lib/game/opening";
 import { randomStartingPair } from "@/lib/game/pairs";
 import { randomThemedPair, type UnlimitedTheme } from "@/lib/game/themes";
 import type { GameMode, GameView, Reveal } from "@/lib/game/types";
@@ -12,12 +13,14 @@ import { toGameView, type GameRecord } from "@/lib/game/view";
 import { AiUnavailableError, getAiPlayer, getAnswerJudge } from "./ai";
 import type { AnswerReview } from "./ai/types";
 import { pendingAnswer } from "./ai/pending-answer";
+import { presetOpeningWords } from "./opening-words";
 import { track } from "./analytics";
 import { GameError } from "./errors";
 import { getStore } from "./store";
 import { DuplicateDailyGameError, type SubmitAnswerResult } from "./store/types";
 
 export interface StartGameInput {
+  playerFirst?: boolean;
   theme?: UnlimitedTheme;
   playerId: string;
   mode: GameMode;
@@ -55,19 +58,22 @@ async function loadOwnedGame(playerId: string, gameId: string): Promise<GameReco
 
 async function createGame(input: StartGameInput): Promise<{ game: GameRecord; created: boolean }> {
   const store = getStore();
+  if (input.playerFirst && input.mode !== "unlimited") throw new GameError("bad_request", "Use the Daily round flow for dated games.");
   if (input.theme && input.mode !== "unlimited") throw new GameError("bad_request", "Themes are available in Unlimited.");
   if (input.puzzleDate !== undefined && input.mode !== "daily") {
     throw new GameError("bad_request", "Choose Daily to play a dated puzzle.");
   }
   if (input.mode !== "daily") {
-    const pair = input.theme ? randomThemedPair(input.theme) : randomStartingPair();
+    const opening = input.playerFirst === true;
+    const pair = opening ? null : input.theme ? randomThemedPair(input.theme) : randomStartingPair();
     const game = await store.createGame({
       playerId: input.playerId,
       mode: input.mode,
       puzzleDate: null,
       puzzleNumber: null,
-      wordA: pair.a,
-      wordB: pair.b,
+      wordA: pair?.a ?? "",
+      wordB: pair?.b ?? "",
+      ...(opening ? { openingWord: presetOpeningWords(1, input.theme)[0] } : {}),
       ...(input.theme ? { theme: input.theme } : {}),
     });
     return { game, created: true };
@@ -109,7 +115,7 @@ export async function startGame(input: StartGameInput, prepare = true): Promise<
       name: "game_started",
       playerId: input.playerId,
       gameId: game.id,
-      properties: { mode: game.mode, puzzleNumber: game.puzzleNumber },
+      properties: { mode: game.mode, puzzleNumber: game.puzzleNumber, ...(game.playerFirst ? { format: 3 } : {}) },
     });
   }
   if (!prepare) return loadView(game);
@@ -151,6 +157,7 @@ export async function prepareRound(playerId: string, gameId: string): Promise<Ga
   const current = rounds.find((r) => r.roundNumber === game.roundNumber);
   if (!current) throw new GameError("internal", "Current round is missing.");
   if (current.aiAnswer === null) {
+    if (game.playerFirst && current.roundNumber === 1) throw new GameError("internal", "The opening word is missing.");
     const word = await pendingAnswer(`game:${current.id}`, async () => {
       await assertAiQuota(playerId);
       try {
@@ -187,7 +194,9 @@ export async function submitAnswer(input: SubmitInput): Promise<SubmitResult> {
   let current = rounds.find((r) => r.roundNumber === game.roundNumber);
   if (!current) throw new GameError("internal", "Current round is missing.");
 
-  const validation = validateAnswer(input.answer, [current.wordA, current.wordB]);
+  const opening = game.playerFirst === true && current.roundNumber === 1;
+  const endpoints = opening ? OPEN_BOARD : [current.wordA, current.wordB] as const;
+  const validation = validateAnswer(input.answer, endpoints);
   if (!validation.ok) throw new GameError("invalid_answer", validation.error);
 
   if (current.aiAnswer === null) {
@@ -200,23 +209,25 @@ export async function submitAnswer(input: SubmitInput): Promise<SubmitResult> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const boardKey = firstGuessBoardKey(game);
     const boardAttempts = input.roundNumber === 1 ? (await store.getFirstGuesses(boardKey)).attempts : undefined;
-    const boardWords = input.roundNumber === 1 ? await store.getFirstGuessWords(boardKey) : [];
-    let review: AnswerReview;
-    await assertAiQuota(input.playerId);
-    try {
-      review = await getAnswerJudge().reviewAnswer({
-        answer: validation.word,
-        wordA: current.wordA,
-        wordB: current.wordB,
-        aiAnswer: current.aiAnswer,
-        roundNumber: input.roundNumber,
-        boardWords,
-      });
-    } catch (err) {
-      console.error("[zonkey] guess review failed", err instanceof Error ? err.message : "Unknown error");
-      throw new GameError("ai_unavailable", "Couldn't check your guess. Your turn is saved—try again.");
+    const boardWords = input.roundNumber === 1 && !opening ? await store.getFirstGuessWords(boardKey) : [];
+    let review: AnswerReview = { word: validation.word, boardWord: null, semanticMatch: false };
+    if (!opening) {
+      await assertAiQuota(input.playerId);
+      try {
+        review = await getAnswerJudge().reviewAnswer({
+          answer: validation.word,
+          wordA: current.wordA,
+          wordB: current.wordB,
+          aiAnswer: current.aiAnswer,
+          roundNumber: input.roundNumber,
+          boardWords,
+        });
+      } catch (err) {
+        console.error("[zonkey] guess review failed", err instanceof Error ? err.message : "Unknown error");
+        throw new GameError("ai_unavailable", "Couldn't check your guess. Your turn is saved—try again.");
+      }
     }
-    const corrected = validateAnswer(review.word, [current.wordA, current.wordB]);
+    const corrected = validateAnswer(review.word, endpoints);
     if (!corrected.ok) throw new GameError("invalid_answer", corrected.error);
     playerAnswer = corrected.word;
     result = await store.submitAnswer({

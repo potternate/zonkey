@@ -24,7 +24,7 @@ interface RunRow {
   current_round: number;
   score: number;
   completed_at: string | null;
-  daily_puzzles: { pairs: StartingPair[] };
+  daily_puzzles: { pairs: StartingPair[]; opening_words: string[] | null };
   daily_rounds: {
     round_number: number;
     word_a: string;
@@ -58,9 +58,10 @@ export class DailySupabaseStore implements DailyStore {
     this.db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   }
 
-  async start(playerId: string, date: string, number: number, pairs: StartingPair[]): Promise<{ run: DailyRunRecord; created: boolean }> {
-    const { data, error } = await this.db.rpc("start_daily_run", {
+  async start(playerId: string, date: string, number: number, pairs: StartingPair[], openingWords?: string[]): Promise<{ run: DailyRunRecord; created: boolean }> {
+    const { data, error } = await this.db.rpc(openingWords ? "start_player_first_daily" : "start_daily_run", {
       p_player_id: playerId, p_date: date, p_number: number, p_pairs: pairs,
+      ...(openingWords ? { p_opening_words: openingWords } : {}),
     }).single<{ id: string; created: boolean }>();
     if (error) throw new Error(`start_daily_run failed: ${error.message}`);
     const run = await this.get(data.id);
@@ -70,7 +71,7 @@ export class DailySupabaseStore implements DailyStore {
 
   async get(id: string): Promise<DailyRunRecord | null> {
     const { data, error } = await this.db.from("daily_runs")
-      .select("*, daily_puzzles(pairs), daily_rounds(*, daily_guesses(*))")
+      .select("*, daily_puzzles(pairs, opening_words), daily_rounds(*, daily_guesses(*))")
       .eq("id", id).maybeSingle<RunRow>();
     if (error) throw new Error(`get Daily failed: ${error.message}`);
     if (!data) return null;
@@ -83,6 +84,7 @@ export class DailySupabaseStore implements DailyStore {
       id: data.id, playerId: data.player_id, date: data.puzzle_date, puzzleNumber: data.puzzle_number,
       mode: data.mode, status: data.status, currentRound: data.current_round, score: data.score,
       completedAt: data.completed_at, pairs: data.daily_puzzles.pairs, rounds,
+      ...(data.daily_puzzles.opening_words ? { openingWords: data.daily_puzzles.opening_words } : {}),
     };
   }
 

@@ -29,13 +29,15 @@ beforeEach(() => {
 });
 
 describe("playing during AI preparation", () => {
-  it("returns an Unlimited starting pair without calling the AI", async () => {
+  it("returns a ready Unlimited opening without calling the AI", async () => {
     const response = await startRoute(new Request("http://localhost/api/games", {
       method: "POST", headers: { "x-player-id": crypto.randomUUID(), "content-type": "application/json" },
       body: JSON.stringify({ mode: "unlimited" }),
     }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ game: { status: "active", maxRounds: 8, current: { ready: false } } });
+    expect(await response.json()).toMatchObject({
+      game: { status: "active", maxRounds: 8, startPair: null, current: { opening: true, ready: true } },
+    });
     expect(chooseWord).not.toHaveBeenCalled();
   });
 
@@ -141,6 +143,7 @@ describe("playing during AI preparation", () => {
     const playerId = crypto.randomUUID();
     const run = await startDaily(playerId);
     const failedPair = run.rounds[1].startPair;
+    if (!failedPair) throw new Error("Expected a legacy starting pair");
     chooseWord.mockImplementation(async ({ wordA, wordB }: { wordA: string; wordB: string }) => {
       if (wordA === failedPair.a && wordB === failedPair.b) throw new Error("offline");
       return "convergence";

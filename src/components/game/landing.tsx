@@ -28,7 +28,7 @@ export function Landing({
           Meet in<br /><span className="text-primary italic">the middle.</span>
         </h1>
         <p className="mt-5 text-sm leading-6 text-muted-foreground sm:text-base">
-          Two words. You and an AI. Find the same connection.
+          Pick your word. Reveal Zonkey&rsquo;s. Meet in the middle.
         </p>
         <WordPairCard wordA="zebra" wordB="donkey" className="mt-6 sm:mt-8" />
       </div>

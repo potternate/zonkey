@@ -104,6 +104,7 @@ export function DailyGame({ date, onHome, onUnlimited, onProgress }: {
           <p className="mt-3 text-xs text-muted-foreground">Guess {run.current.guess} / 5 · {DAILY_POINTS[run.current.guess - 1]} pts</p>
           <RoundScreen key={`${run.current.round}:${run.current.guess}`} round={{
             number: run.current.guess, wordA: run.current.wordA, wordB: run.current.wordB, ready: run.current.ready,
+            opening: run.current.opening,
           }} submitting={submitting} preparing={preparing} prepareError={prepareError} submitError={submitError}
           onRetryPrepare={() => setPrepareRetry((value) => value + 1)} onSubmit={submit} />
         </>

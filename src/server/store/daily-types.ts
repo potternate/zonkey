@@ -13,6 +13,7 @@ export interface DailyRoundRecord {
 }
 
 export interface DailyRunRecord extends DailyRunEntry {
+  openingWords?: string[];
   playerId: string;
   currentRound: number;
   pairs: StartingPair[];
@@ -40,7 +41,7 @@ export class DailyConflictError extends Error {
 }
 
 export interface DailyStore {
-  start(playerId: string, date: string, number: number, pairs: StartingPair[]): Promise<{ run: DailyRunRecord; created: boolean }>;
+  start(playerId: string, date: string, number: number, pairs: StartingPair[], openingWords?: string[]): Promise<{ run: DailyRunRecord; created: boolean }>;
   get(id: string): Promise<DailyRunRecord | null>;
   cachedAnswer(run: DailyRunRecord): Promise<string | null>;
   cacheFirstAnswer(run: DailyRunRecord, round: number, answer: string): Promise<void>;
@@ -58,16 +59,19 @@ export function dailyBoardKey(date: string, round: number): string {
 
 export function toDailyView(run: DailyRunRecord): DailyRunView {
   const current = run.rounds.find((round) => round.number === run.currentRound);
+  const playerFirst = run.openingWords !== undefined;
+  const opening = playerFirst && current?.guesses.length === 0;
   return {
     id: run.id,
     date: run.date,
     puzzleNumber: run.puzzleNumber,
     mode: run.mode,
+    ...(playerFirst ? { playerFirst } : {}),
     status: run.status,
     score: run.score,
     rounds: run.rounds.map((round) => ({
       number: round.number,
-      startPair: run.pairs[round.number - 1],
+      startPair: playerFirst ? null : run.pairs[round.number - 1],
       status: round.status,
       score: round.score,
       guesses: round.guesses,
@@ -75,8 +79,9 @@ export function toDailyView(run: DailyRunRecord): DailyRunView {
     current: run.status === "active" && current ? {
       round: run.currentRound,
       guess: current.guesses.length + 1,
-      wordA: current.wordA,
-      wordB: current.wordB,
+      wordA: opening ? "" : current.wordA,
+      wordB: opening ? "" : current.wordB,
+      ...(opening ? { opening } : {}),
       ready: current.aiAnswer !== null,
     } : null,
   };

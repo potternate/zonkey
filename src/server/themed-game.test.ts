@@ -46,14 +46,17 @@ for (const [name, makeStore] of stores) {
       });
     }
 
-    it.each(UNLIMITED_THEMES)("persists %s and its pair through reload without waiting for AI", async (theme) => {
+    it.each(UNLIMITED_THEMES)("persists %s and its hidden preset word without waiting for AI", async (theme) => {
       const response = await POST(request({ mode: "unlimited", theme }));
       expect(response.status).toBe(200);
       const { game } = await response.json();
       expect(game.theme).toBe(theme);
-      expect(THEMED_PAIRS[theme]).toContainEqual(game.startPair);
-      expect(game.current.ready).toBe(false);
+      expect(game.startPair).toBeNull();
+      expect(game.current).toMatchObject({ opening: true, wordA: "", wordB: "", ready: true });
       expect(await store.getGame(game.id)).toMatchObject({ theme });
+      const word = (await store.getRounds(game.id))[0].aiAnswer!;
+      expect(THEMED_PAIRS[theme].flatMap((pair) => [pair.a, pair.b])).toContain(word);
+      expect(JSON.stringify(game)).not.toContain(JSON.stringify(word));
       expect(JSON.stringify(game)).not.toContain("aiAnswer");
     });
 

@@ -2,8 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import { dailyArchiveDates } from "../src/lib/game/archive";
 import { puzzleNumberForDate } from "../src/lib/game/daily";
 import { dailyPairsForPuzzle } from "../src/lib/game/daily-run";
+import { playerFirstDaily } from "../src/lib/game/opening";
 
-const puzzles = dailyArchiveDates().map((date) => {
+const puzzles = dailyArchiveDates().filter((date) => !playerFirstDaily(puzzleNumberForDate(date))).map((date) => {
   const number = puzzleNumberForDate(date);
   return { puzzle_date: date, puzzle_number: number, pairs: dailyPairsForPuzzle(number) };
 });

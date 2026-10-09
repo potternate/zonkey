@@ -31,6 +31,7 @@ export class MemoryStore implements GameStore {
     }
     const now = new Date().toISOString();
     const game: GameRecord = {
+      ...(input.openingWord ? { playerFirst: true } : {}),
       ...(input.theme ? { theme: input.theme } : {}),
       id: crypto.randomUUID(),
       playerId: input.playerId,
@@ -46,7 +47,7 @@ export class MemoryStore implements GameStore {
       finalRounds: null,
     };
     this.games.set(game.id, game);
-    this.addRound(game.id, 1, input.wordA, input.wordB);
+    this.addRound(game.id, 1, input.wordA, input.wordB, input.openingWord ?? null);
     return { ...game };
   }
 
@@ -179,7 +180,7 @@ export class MemoryStore implements GameStore {
     this.events.push({ ...event, createdAt: new Date().toISOString() });
   }
 
-  private addRound(gameId: string, roundNumber: number, wordA: string, wordB: string) {
+  private addRound(gameId: string, roundNumber: number, wordA: string, wordB: string, aiAnswer: string | null = null) {
     const round: RoundRecord = {
       id: crypto.randomUUID(),
       gameId,
@@ -187,7 +188,7 @@ export class MemoryStore implements GameStore {
       wordA,
       wordB,
       playerAnswer: null,
-      aiAnswer: null,
+      aiAnswer,
       matched: null,
       createdAt: new Date().toISOString(),
     };

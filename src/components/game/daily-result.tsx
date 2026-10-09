@@ -63,13 +63,13 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
         {run.rounds.map((round) => (
           <details key={round.number}>
             <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 py-3 text-sm">
-              <span>Round {round.number} · {round.startPair.a} + {round.startPair.b}</span>
+              <span>Round {round.number}{round.startPair ? ` · ${round.startPair.a} + ${round.startPair.b}` : ""}</span>
               <span className="shrink-0 font-semibold tabular-nums">{round.score} pts</span>
             </summary>
             <ol className="space-y-2 pb-4 text-sm">
               {round.guesses.map((guess) => (
                 <li key={guess.number} className={guess.matched ? "text-success" : "text-muted-foreground"}>
-                  {guess.number}. {guess.wordA} + {guess.wordB} → You: {guess.playerAnswer} · AI: {guess.aiAnswer}{guess.matched ? " · Connected" : ""}
+                  {guess.number}. {guess.wordA && guess.wordB ? `${guess.wordA} + ${guess.wordB} → ` : ""}You: {guess.playerAnswer} · AI: {guess.aiAnswer}{guess.matched ? " · Connected" : ""}
                 </li>
               ))}
             </ol>

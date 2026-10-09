@@ -26,7 +26,7 @@ describe("toGameView", () => {
     expect(view.current).toEqual({ number: 2, wordA: "beach", wordB: "boat", ready: true });
     expect(JSON.stringify(view)).not.toContain("sail");
     expect(view.rounds).toHaveLength(1);
-    expect(view.startPair.emojiA).toBe("🍕");
+    expect(view.startPair?.emojiA).toBe("🍕");
   });
 
   it("reports not-ready when the AI hasn't answered", () => {

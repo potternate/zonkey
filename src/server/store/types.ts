@@ -6,6 +6,7 @@ import type { GameRecord, RoundRecord } from "@/lib/game/view";
 import type { UnlimitedTheme } from "@/lib/game/themes";
 
 export interface NewGameInput {
+  openingWord?: string;
   theme?: UnlimitedTheme;
   playerId: string;
   mode: GameMode;

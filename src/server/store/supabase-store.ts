@@ -15,6 +15,7 @@ import {
 } from "./types";
 
 interface GameRow {
+  player_first: boolean;
   theme: UnlimitedTheme | null;
   id: string;
   player_id: string;
@@ -53,6 +54,7 @@ const UNIQUE_VIOLATION = "23505";
 
 function toGame(row: GameRow): GameRecord {
   return {
+    ...(row.player_first ? { playerFirst: true } : {}),
     ...(row.theme ? { theme: row.theme } : {}),
     id: row.id,
     playerId: row.player_id,
@@ -110,6 +112,13 @@ export class SupabaseStore implements GameStore {
   }
 
   async createGame(input: NewGameInput): Promise<GameRecord> {
+    if (input.openingWord) {
+      const { data, error } = await this.db.rpc("create_player_first_game", {
+        p_player_id: input.playerId, p_opening_word: input.openingWord, p_theme: input.theme ?? null,
+      }).single<GameRow>();
+      if (error) throw new Error(`create_player_first_game failed: ${error.message}`);
+      return toGame(data);
+    }
     const { data, error } = await this.db
       .rpc(input.theme ? "create_themed_game" : "create_game", {
         ...(input.theme ? { p_theme: input.theme } : {}),

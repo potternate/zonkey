@@ -27,18 +27,21 @@ export interface CurrentRoundView {
   number: number;
   wordA: string;
   wordB: string;
+  /** The player's opening word: nothing is on the board and Zonkey's word is preset. */
+  opening?: boolean;
   /** True once the server has locked in the AI's answer for this round. */
   ready: boolean;
 }
 
 export interface GameView {
+  playerFirst?: boolean;
   theme?: UnlimitedTheme;
   id: string;
   mode: GameMode;
   puzzleNumber: number | null;
   status: GameStatus;
   maxRounds: number;
-  startPair: StartingPair;
+  startPair: StartingPair | null;
   rounds: RoundView[];
   current: CurrentRoundView | null;
   firstGuesses?: FirstGuessBoard;

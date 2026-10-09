@@ -20,6 +20,9 @@ export const POST = withErrors(async (req: Request) => {
     throw new GameError("conflict", "Daily now has five rounds. Refresh Zonkey to play.");
   }
   await assertPlusAccess();
-  const game = await startGame({ playerId, mode: body.mode, puzzleDate: body.puzzleDate, theme: body.theme }, false);
+  const game = await startGame({
+    playerId, mode: body.mode, puzzleDate: body.puzzleDate, theme: body.theme,
+    playerFirst: body.mode === "unlimited",
+  }, false);
   return NextResponse.json({ game });
 });

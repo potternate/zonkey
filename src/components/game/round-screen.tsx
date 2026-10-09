@@ -55,10 +55,15 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
 
   return (
     <div key={round.number} className="flex flex-1 flex-col gap-4 pt-3 animate-in fade-in duration-300">
-      <WordPairCard wordA={round.wordA} wordB={round.wordB} />
+      {round.opening ? (
+        <div className="rounded-2xl border bg-card px-5 py-6 text-center">
+          <h2 className="text-xl font-semibold">Start with your word.</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Zonkey has picked its word. Enter yours to reveal the pair.</p>
+        </div>
+      ) : <WordPairCard wordA={round.wordA} wordB={round.wordB} />}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <label htmlFor="your-word" className="sr-only">Your connection</label>
+        <label htmlFor="your-word" className="sr-only">{round.opening ? "Your starting word" : "Your connection"}</label>
         <div key={shakeKey} className={cn(shakeKey > 0 && error && "animate-shake")}>
           <Input
             ref={inputRef}
@@ -69,7 +74,7 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
               setLocalError(null);
             }}
             readOnly={submitting}
-            placeholder="Your connecting word"
+            placeholder={round.opening ? "Any starting word" : "Your connecting word"}
             aria-label="Your word"
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "word-feedback" : undefined}
@@ -88,7 +93,7 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
           disabled={submitting || !value.trim()}
           className="h-14 justify-between rounded-2xl px-5 text-base font-semibold shadow-sm"
         >
-          {submitting ? ready ? "Checking…" : "Waiting for AI…" : "Connect"}
+          {submitting ? ready ? "Checking…" : "Waiting for AI…" : round.opening ? "Reveal our words" : "Connect"}
           {submitting ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <ArrowRight className="size-5" aria-hidden="true" />}
         </Button>
         <div id="word-feedback" className="text-center text-sm" aria-live="polite">

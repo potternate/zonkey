@@ -9,24 +9,29 @@ import type { DailyPosition, DailyRunRecord, DailyStore, DailySubmission } from 
 
 export class DailyMemoryStore implements DailyStore {
   private runs = new Map<string, DailyRunRecord>();
-  private puzzles = new Map<string, StartingPair[]>();
+  private puzzles = new Map<string, { pairs: StartingPair[]; openingWords?: string[] }>();
   private answers = new Map<string, string>();
   private boards = new Map<string, Map<string, number>>();
 
   constructor(private legacyDates: (playerId: string) => Promise<string[]> = async () => []) {}
 
-  async start(playerId: string, date: string, number: number, pairs: StartingPair[]): Promise<{ run: DailyRunRecord; created: boolean }> {
+  async start(playerId: string, date: string, number: number, pairs: StartingPair[], openingWords?: string[]): Promise<{ run: DailyRunRecord; created: boolean }> {
     const existing = [...this.runs.values()].find((run) => run.playerId === playerId && run.date === date);
     if (existing) return { run: structuredClone(existing), created: false };
     if (pairs.length !== DAILY_ROUNDS) throw new Error("A Daily needs five pairs");
-    const canonical = this.puzzles.get(date) ?? structuredClone(pairs);
+    if (openingWords && (openingWords.length !== DAILY_ROUNDS || openingWords.some((word) => !word))) throw new Error("A Daily needs five opening words");
+    const canonical = this.puzzles.get(date) ?? structuredClone({ pairs, ...(openingWords ? { openingWords } : {}) });
     this.puzzles.set(date, canonical);
     const run: DailyRunRecord = {
       id: crypto.randomUUID(), playerId, date, puzzleNumber: number,
       mode: date === toIsoDate(new Date()) ? "daily" : "archive",
-      status: "active", currentRound: 1, score: 0, completedAt: null, pairs: canonical,
-      rounds: canonical.map((pair, index) => ({
-        number: index + 1, wordA: pair.a, wordB: pair.b, aiAnswer: null, status: "active", score: 0, guesses: [],
+      status: "active", currentRound: 1, score: 0, completedAt: null, pairs: canonical.pairs,
+      ...(canonical.openingWords ? { openingWords: canonical.openingWords } : {}),
+      rounds: canonical.pairs.map((pair, index) => ({
+        number: index + 1,
+        wordA: canonical.openingWords ? "" : pair.a,
+        wordB: canonical.openingWords ? "" : pair.b,
+        aiAnswer: canonical.openingWords?.[index] ?? null, status: "active", score: 0, guesses: [],
       })),
     };
     this.runs.set(run.id, run);

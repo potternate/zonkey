@@ -28,7 +28,7 @@ export function dailyRoundScore(guess: number, matched: boolean): number {
 
 export interface DailyRound {
   number: number;
-  startPair: StartingPair;
+  startPair: StartingPair | null;
   status: "active" | "won" | "lost";
   score: number;
   guesses: RoundView[];
@@ -39,6 +39,7 @@ export interface DailyRunView {
   date: string;
   puzzleNumber: number;
   mode: "daily" | "archive";
+  playerFirst?: boolean;
   status: "active" | "completed";
   score: number;
   rounds: DailyRound[];
@@ -47,6 +48,7 @@ export interface DailyRunView {
     guess: number;
     wordA: string;
     wordB: string;
+    opening?: boolean;
     ready: boolean;
   } | null;
 }

@@ -6,7 +6,7 @@ zonkey.io
 
 You and the AI each pick a word connecting two endpoints. Different words become the next guess's endpoints; matching words connect. From guess 2 onward, equivalent meanings also connect.
 
-**Daily** has five independent rounds each UTC day, with up to five guesses per round. Connecting on guesses 1–5 earns **1,000 / 800 / 600 / 400 / 200** points; an exhausted round earns **0**. Always continue through all five rounds for a total out of **5,000**. Everyone gets the same five deterministic starting pairs. AI commitments are shared for identical date/round/guess/endpoint states. **Unlimited** keeps eight-turn games with fresh random starting pairs. The catalog has 1,365 words and 6,924 distinct pairs.
+**Daily** has five independent rounds each UTC day, with up to five guesses per round. Connecting on guesses 1–5 earns **1,000 / 800 / 600 / 400 / 200** points; an exhausted round earns **0**. Always continue through all five rounds for a total out of **5,000**. Starting with unpublished Daily #11 (October 10, 2026), everyone faces five shared preset opening words. Players enter their own word first; the AI word is revealed only after submission. This is guess 1; exact opening matches earn 1,000 points. Otherwise the two words become the next pair and convergence proceeds normally. Later AI commitments are shared for identical date/round/guess/endpoint states. **Unlimited** starts with the player's own word and a preset random or themed AI word, with eight turns in total. The catalog has 1,365 words and 6,924 distinct pairs.
 
 Daily streaks count consecutive UTC days where the player finishes that day's puzzle before midnight. Wins and losses both count. A streak ending yesterday remains current until today's deadline; missing a day resets the current streak while preserving the best. Existing on-time completions count automatically. Home, Daily results, and Daily scores show both current and best streaks.
 
@@ -82,12 +82,20 @@ Sandbox purchases never unlock the live paywall, even if a preview shares the da
 
 ## Gameplay upgrades
 
-- Daily #11 (October 10, 2026) onward keeps the established first-pair schedule and adds four curated challenges: gentle, medium, gentle, tricky. Published puzzles and saved results remain unchanged. Difficulty is editorial, not calibrated from the small current sample.
+- Earlier Dailies keep the established first-pair schedule and curated challenges where published. New player-first Dailies use server-selected opening words instead. Published puzzle definitions, including any already created after the cutoff, and saved results remain unchanged.
 - Scores shows a 7-day average, a 30-day trend, and guesses per solved round for completed five-round runs. Daily is grouped by puzzle date; Archive by actual completion date. Failed rounds are excluded from guess averages.
 - Unlimited offers Random, Animals, Food, and Outdoors on a separate picker. The selected theme is saved with the game and reused by Play again. Random retains the original full pool.
 - Each OpenAI attempt has a six-second deadline and no hidden SDK retries. Word generation uses `OPENAI_MODEL` first, then `OPENAI_FALLBACK_MODEL` (default `gpt-4.1-nano`) on failure; the judge retries the same judge model once. Prompts, validation, shared Daily commitments, and AI quotas are unchanged. Quotas count logical AI operations, including failed operations. Preparation and submission retry once in the browser; a lost submission response is recovered from saved state before reposting. Failed requests preserve the typed word and never consume a guess.
 - Before deploying, apply `20261009060000_personal_progress.sql` and `20261009070000_unlimited_themes.sql` after existing migrations. Both are additive; existing games have no theme.
 - `npm run analyze:pairs` reads production with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` and prints only aggregate pair statistics and its PostgREST query projections. It separates game modes, excludes unreached Daily rounds, and requires 20 observations before flagging a pair. Unfinished for 24 hours is a review signal, not proof of abandonment. The command never updates the schedule automatically.
+
+### Player-first openings
+
+Apply `20261009110000_player_first_openings.sql` before deploying. The server selects preset words using cryptographic randomness from the existing word catalog, without an LLM request. Five unique Daily words are committed atomically on first publication; concurrent starts reuse the canonical definition. Existing definitions are never overwritten. New Unlimited games commit one word when created. Themes restrict the AI opening word to that category; the player can choose any word.
+
+The opening entry is normalized and exact-match checked without invoking the AI or judge. Later guesses retain the existing AI, semantic judging, quotas, and request recovery. An opening match ends the round normally. Old saved Unlimited games and older Archive dates retain their original paired openings. Client views, SEO pages, and score summaries never contain unsubmitted preset words. Pair-quality analysis excludes player-first games; the backfill command only seeds the older paired format.
+
+Player-first Daily events and new Unlimited starts use `format: 3` to distinguish their gameplay data from paired openings.
 
 ## Local development
 
