@@ -19,7 +19,7 @@ const { chooseWord, reviewAnswer } = vi.hoisted(() => ({ chooseWord: vi.fn(), re
 vi.mock("./store/daily-index", () => ({ getDailyStore: () => dailyStore }));
 vi.mock("./store", () => ({ getStore: () => store }));
 vi.mock("./opening-words", () => ({
-  presetOpeningWords: () => ["zebra", "mountain", "coffee", "ocean", "moon"],
+  presetOpeningWords: () => ["zebra", "mountain", "coffee"],
 }));
 vi.mock("./ai", () => ({
   getAiPlayer: () => ({ id: "test", chooseWord }),
@@ -41,12 +41,12 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
-describe("five-round Daily service", () => {
-  it("backfills valid past dates with five hidden openings, resumes, and rejects unavailable dates", async () => {
+describe("three-round Daily service", () => {
+  it("backfills valid past dates with three hidden openings, resumes, and rejects unavailable dates", async () => {
     const playerId = crypto.randomUUID();
     const archive = await startDaily(playerId, "2026-09-30");
     expect(archive).toMatchObject({ mode: "archive", puzzleNumber: 1 });
-    expect(archive.rounds).toHaveLength(5);
+    expect(archive.rounds).toHaveLength(3);
     expect(archive.current).toMatchObject({ opening: true, wordA: "", wordB: "" });
     expect(archive.rounds.every((round) => round.startPair === null)).toBe(true);
     expect((await startDaily(playerId, "2026-09-30")).id).toBe(archive.id);
@@ -114,17 +114,17 @@ describe("five-round Daily service", () => {
     await expect(submitDaily({ id: run.id, playerId, round: 1, guess: 2, answer: "ship" })).rejects.toMatchObject({ code: "conflict" });
   });
 
-  it("reveals distributions only after five rounds, saves scores, and scopes sharing to the owner", async () => {
+  it("reveals distributions only after three rounds, saves scores, and scopes sharing to the owner", async () => {
     const playerId = crypto.randomUUID();
     let run = await startDaily(playerId);
-    for (let round = 1; round <= 5; round++) {
+    for (let round = 1; round <= 3; round++) {
       await prepareDaily(playerId, run.id);
       const answer = (await dailyStore.get(run.id))!.rounds[round - 1].aiAnswer!;
       const result = await submitDaily({ id: run.id, playerId, round, guess: 1, answer });
       run = result.run;
-      if (round < 5) await expect(dailyResults(playerId, run.id)).rejects.toMatchObject({ code: "conflict" });
+      if (round < 3) await expect(dailyResults(playerId, run.id)).rejects.toMatchObject({ code: "conflict" });
     }
-    expect(run).toMatchObject({ status: "completed", score: 5000, current: null });
+    expect(run).toMatchObject({ status: "completed", score: 3000, current: null });
     expect((await dailyResults(playerId, run.id)).betterThanPercent).toBeNull();
     expect(store.events.filter((event) => event.name === "daily_completed")).toHaveLength(1);
     await shareDaily(playerId, run.id);
@@ -170,7 +170,7 @@ describe("five-round Daily service", () => {
       expect((await submitRoute(request({ ...invalid, answer: "water" }), ctx)).status).toBe(400);
     }
     const answer = (await dailyStore.get(run.id))!.rounds[0].aiAnswer!;
-    const submitted = await submitRoute(request({ round: 1, guess: 1, answer, score: 5000, status: "completed" }), ctx);
+    const submitted = await submitRoute(request({ round: 1, guess: 1, answer, score: 3000, status: "completed" }), ctx);
     expect(await submitted.json()).toMatchObject({ run: { score: 1000, status: "active", current: { round: 2 } } });
     const compatibleStart = await legacyStartRoute(request({ mode: "daily" }));
     expect(compatibleStart.status).toBe(200);
@@ -195,7 +195,7 @@ describe("five-round Daily service", () => {
       return scores.savedDailies.filter((game) => game.status !== "active").map((game) => game.date);
     });
     const run = await startDaily(playerId);
-    for (let number = 1; number <= 5; number++) {
+    for (let number = 1; number <= 3; number++) {
       await prepareDaily(playerId, run.id);
       const answer = (await dailyStore.get(run.id))!.rounds[number - 1].aiAnswer!;
       await submitDaily({ id: run.id, playerId, round: number, guess: 1, answer });

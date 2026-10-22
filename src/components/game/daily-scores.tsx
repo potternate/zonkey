@@ -18,7 +18,7 @@ export function DailyScores({ history, mode, today, onResult }: {
           <div key={label}><dd className="text-2xl font-bold text-primary tabular-nums">{value}</dd><dt className="mt-1 text-xs text-muted-foreground">{label}</dt></div>
         ))}
       </dl>
-      <p className="text-center text-xs text-muted-foreground">Points out of 5,000. Higher is better.</p>
+      <p className="text-center text-xs text-muted-foreground">Points out of 3,000. Higher is better.</p>
       <ScoreProgress history={history} mode={mode} today={today} />
       <ul className="divide-y border-y">
         {history.filter((run) => run.mode === mode).slice(0, 10).map((run) => (
@@ -30,7 +30,7 @@ export function DailyScores({ history, mode, today, onResult }: {
           </li>
         ))}
       </ul>
-      {!history.some((run) => run.mode === mode) && <p className="text-center text-sm text-muted-foreground">Finish a five-round puzzle to save your first score.</p>}
+      {!history.some((run) => run.mode === mode) && <p className="text-center text-sm text-muted-foreground">Finish a puzzle to save your first score.</p>}
     </div>
   );
 }

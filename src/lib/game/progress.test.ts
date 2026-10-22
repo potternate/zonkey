@@ -10,7 +10,7 @@ const entry: DailyRunEntry = {
 describe("personal progress", () => {
   it("uses completed puzzles in the last seven UTC days without inventing zeros for missed days", () => {
     const progress = scoreProgress([entry,
-      { ...entry, id: "old", date: "2026-10-02", score: 5000 },
+      { ...entry, id: "old", date: "2026-10-02", score: 3000 },
       { ...entry, id: "active", status: "active", score: 0, completedAt: null },
       { ...entry, id: "archive", mode: "archive", score: 0 },
     ], "daily", "2026-10-09");
@@ -28,10 +28,10 @@ describe("personal progress", () => {
 
   it("groups Archive scores by actual play date instead of historical puzzle date", () => {
     expect(scoreProgress([
-      { ...entry, mode: "archive", date: "2026-09-30", score: 5000 },
+      { ...entry, mode: "archive", date: "2026-09-30", score: 3000 },
       { ...entry, mode: "archive", date: "2026-10-01", score: 1000 },
     ], "archive", "2026-10-09")).toMatchObject({
-      weekAverage: 3000, weekPlayed: 2, points: [{ date: "2026-10-09", score: 3000 }],
+      weekAverage: 2000, weekPlayed: 2, points: [{ date: "2026-10-09", score: 2000 }],
     });
   });
 

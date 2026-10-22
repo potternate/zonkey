@@ -1,6 +1,7 @@
 import "server-only";
 import { dailyArchiveEntry } from "@/lib/game/archive";
 import { toIsoDate } from "@/lib/game/daily";
+import { DAILY_ROUNDS } from "@/lib/game/daily-run";
 import type { DailyRunView, DailyScoreResults } from "@/lib/game/daily-run";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
 import { validateAnswer } from "@/lib/game/normalize";
@@ -20,7 +21,7 @@ import type { DailyPosition, DailyRunRecord } from "./store/daily-types";
 
 async function owned(playerId: string, id: string): Promise<DailyRunRecord> {
   const run = await getDailyStore().get(id);
-  if (!run || run.playerId !== playerId || !run.openingWords) throw new GameError("not_found", "Game not found. Start a new five-round game.");
+  if (!run || run.playerId !== playerId || !run.openingWords) throw new GameError("not_found", "Game not found. Start a new game.");
   return run;
 }
 
@@ -42,7 +43,7 @@ export async function startDaily(playerId: string, date = toIsoDate(new Date()))
   const puzzle = dailyArchiveEntry(date);
   if (!puzzle) throw new GameError("bad_request", "That puzzle is not available.");
   const { run, created } = await getDailyStore().start(
-    playerId, date, puzzle.number, presetOpeningWords(5),
+    playerId, date, puzzle.number, presetOpeningWords(DAILY_ROUNDS),
   );
   if (created) void track({
     name: "daily_started", playerId, gameId: null,
@@ -52,7 +53,7 @@ export async function startDaily(playerId: string, date = toIsoDate(new Date()))
 }
 
 export async function startUnlimited(playerId: string, theme?: UnlimitedTheme, requestId?: string): Promise<DailyRunView> {
-  const run = await getDailyStore().startUnlimited(playerId, presetOpeningWords(5, theme), theme, requestId);
+  const run = await getDailyStore().startUnlimited(playerId, presetOpeningWords(DAILY_ROUNDS, theme), theme, requestId);
   void track({
     name: "game_started", playerId, gameId: null,
     properties: { dailyRunId: run.id, mode: run.mode, theme: theme ?? null, format: 3 },
@@ -168,9 +169,9 @@ export async function submitDaily(input: DailyPosition & { answer: string }): Pr
 export async function dailyResults(playerId: string, id: string): Promise<DailyScoreResults> {
   const run = await owned(playerId, id);
   if (run.mode !== "daily") throw new GameError("not_found", "Daily results are only available for live Dailies.");
-  if (run.status !== "completed") throw new GameError("conflict", "Finish all five rounds to see everyone’s results.");
+  if (run.status !== "completed") throw new GameError("conflict", "Finish all three rounds to see everyone’s results.");
   const results = await getDailyStore().results(id, playerId);
-  if (!results) throw new GameError("conflict", "Finish all five rounds to see everyone’s results.");
+  if (!results) throw new GameError("conflict", "Finish all three rounds to see everyone’s results.");
   return results;
 }
 

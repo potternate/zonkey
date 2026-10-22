@@ -25,7 +25,7 @@ let dailyStore: DailyMemoryStore;
 vi.mock("./store", () => ({ getStore: () => store }));
 vi.mock("./store/daily-index", () => ({ getDailyStore: () => dailyStore }));
 vi.mock("./opening-words", () => ({
-  presetOpeningWords: () => ["convergence", "mountain", "coffee", "ocean", "moon"],
+  presetOpeningWords: () => ["convergence", "mountain", "coffee"],
 }));
 vi.mock("./auth", () => ({
   plusEnabled: () => state.enabled,
@@ -104,7 +104,7 @@ describe("Plus route enforcement", () => {
     expect((await prepareGameRoute(request({}), context(game.id))).status).toBe(200);
     expect((await submitGameRoute(request({ round: 1, guess: 1, answer: "convergence" }), context(game.id))).status).toBe(200);
     const words = (await dailyStore.get(game.id))!.openingWords;
-    for (let round = 2; round <= 5; round++) {
+    for (let round = 2; round <= 3; round++) {
       await submitDaily({ playerId, id: game.id, round, guess: 1, answer: words[round - 1] });
     }
     state.plus = false;
@@ -126,7 +126,7 @@ describe("Plus route enforcement", () => {
     expect((await dailyRoute(request(), context(run.id))).status).toBe(200);
     expect((await prepareDailyRoute(request({}), context(run.id))).status).toBe(200);
     expect((await submitDailyRoute(request({ round: 1, guess: 1, answer: "convergence" }), context(run.id))).status).toBe(200);
-    for (let round = 2; round <= 5; round++) {
+    for (let round = 2; round <= 3; round++) {
       await submitDaily({ playerId, id: run.id, round, guess: 1, answer: (await dailyStore.get(run.id))!.openingWords[round - 1] });
     }
     state.plus = false;

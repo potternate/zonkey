@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/client/api";
-import { DAILY_POINTS } from "@/lib/game/daily-run";
+import { DAILY_GUESSES, DAILY_MAX_SCORE, DAILY_POINTS, DAILY_ROUNDS } from "@/lib/game/daily-run";
 import type { DailyRunView } from "@/lib/game/daily-run";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
 import type { Reveal } from "@/lib/game/types";
@@ -96,19 +96,19 @@ export function DailyGame({ date, id, mode = "daily", theme, onHome, onUnlimited
   if (!run) return (
     <div className="space-y-4 py-12 text-center">
       {loadError ? <><p role="alert" className="text-destructive">{loadError}</p><Button onClick={() => setLoadRetry((value) => value + 1)}>Try again</Button></> :
-        <p role="status" className="text-muted-foreground">Getting your five rounds ready…</p>}
+        <p role="status" className="text-muted-foreground">Getting your rounds ready…</p>}
       <Button variant="ghost" onClick={onHome}>Back to home</Button>
     </div>
   );
   if (run.status === "completed" && !reveal) return <DailyResult run={run} onHome={onHome} onUnlimited={onUnlimited} />;
-  const displayRound = reveal?.round ?? run.current?.round ?? 5;
+  const displayRound = reveal?.round ?? run.current?.round ?? DAILY_ROUNDS;
   const finishedRound = run.rounds[displayRound - 1];
   return (
     <>
-      <GameHeader round={displayRound} maxRounds={5} label={run.mode === "unlimited" ? `UNLIMITED${run.theme ? ` · ${THEME_LABELS[run.theme]}` : ""}` : `${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} summary={`${run.score.toLocaleString("en-US")} / 5,000 pts`} />
+      <GameHeader round={displayRound} maxRounds={DAILY_ROUNDS} label={run.mode === "unlimited" ? `UNLIMITED${run.theme ? ` · ${THEME_LABELS[run.theme]}` : ""}` : `${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} summary={`${run.score.toLocaleString("en-US")} / ${DAILY_MAX_SCORE.toLocaleString("en-US")} pts`} />
       {!reveal && run.current && (
         <>
-          <p className="mt-3 text-xs text-muted-foreground">Guess {run.current.guess} / 5 · {DAILY_POINTS[run.current.guess - 1]} pts</p>
+          <p className="mt-3 text-xs text-muted-foreground">Guess {run.current.guess} / {DAILY_GUESSES} · {DAILY_POINTS[run.current.guess - 1]} pts</p>
           <RoundScreen key={`${run.current.round}:${run.current.guess}`} round={{
             number: run.current.guess, wordA: run.current.wordA, wordB: run.current.wordB, ready: run.current.ready,
             opening: run.current.opening,

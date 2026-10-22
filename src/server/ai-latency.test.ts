@@ -111,7 +111,7 @@ describe("playing during AI preparation", () => {
     expect((await getDaily(playerId, run.id)).current).toMatchObject({ ready: true, guess: 1 });
   });
 
-  it("prepares all five openings at creation and shares them privately across players", async () => {
+  it("prepares all three openings at creation and shares them privately across players", async () => {
     const playerId = crypto.randomUUID();
     const run = await startDaily(playerId);
     const context = { params: Promise.resolve({ id: run.id }) };
@@ -141,11 +141,11 @@ describe("playing during AI preparation", () => {
     const response = await prepareRoute(new Request("http://localhost", { method: "POST", headers: { "x-player-id": playerId } }), { params: Promise.resolve({ id: run.id }) });
     expect(response.status).toBe(200);
     const words = (await dailyStore.get(run.id))!.openingWords;
-    for (let round = 1; round <= 5; round++) {
+    for (let round = 1; round <= 3; round++) {
       expect((await getDaily(playerId, run.id)).current).toMatchObject({ round, opening: true, ready: true });
       await submitDaily({ id: run.id, playerId, round, guess: 1, answer: words[round - 1] });
     }
-    expect(await getDaily(playerId, run.id)).toMatchObject({ score: 5000, status: "completed" });
+    expect(await getDaily(playerId, run.id)).toMatchObject({ score: 3000, status: "completed" });
     expect(chooseWord).not.toHaveBeenCalled();
   });
 });

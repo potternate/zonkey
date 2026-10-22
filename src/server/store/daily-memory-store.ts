@@ -19,7 +19,7 @@ export class DailyMemoryStore implements DailyStore {
   async start(playerId: string, date: string, number: number, openingWords: string[]): Promise<{ run: DailyRunRecord; created: boolean }> {
     const existing = [...this.runs.values()].find((run) => run.playerId === playerId && run.date === date && run.mode !== "unlimited");
     if (existing) return { run: structuredClone(existing), created: false };
-    if (openingWords.length !== DAILY_ROUNDS || openingWords.some((word) => !/^[a-z]+(-[a-z]+)*$/.test(word))) throw new Error("A game needs five opening words");
+    if (openingWords.length !== DAILY_ROUNDS || openingWords.some((word) => !/^[a-z]+(-[a-z]+)*$/.test(word))) throw new Error("A game needs one opening word per round");
     const canonical = this.puzzles.get(date) ?? [...openingWords];
     this.puzzles.set(date, canonical);
     const run: DailyRunRecord = {
@@ -42,7 +42,7 @@ export class DailyMemoryStore implements DailyStore {
       if (existing.playerId !== playerId || existing.mode !== "unlimited") throw new DailyConflictError("not_found");
       return structuredClone(existing);
     }
-    if (openingWords.length !== DAILY_ROUNDS || openingWords.some((word) => !/^[a-z]+(-[a-z]+)*$/.test(word))) throw new Error("A game needs five opening words");
+    if (openingWords.length !== DAILY_ROUNDS || openingWords.some((word) => !/^[a-z]+(-[a-z]+)*$/.test(word))) throw new Error("A game needs one opening word per round");
     const run: DailyRunRecord = {
       id: requestId ?? crypto.randomUUID(), playerId, date: toIsoDate(new Date()), puzzleNumber: null,
       mode: "unlimited", ...(theme ? { theme } : {}),

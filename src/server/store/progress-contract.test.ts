@@ -19,8 +19,8 @@ for (const [name, makeStore] of stores) {
       const playerId = crypto.randomUUID();
       const today = toIsoDate(new Date());
       const number = puzzleNumberForDate(today);
-      const { run } = await store.start(playerId, today, number, presetOpeningWords(5));
-      for (let round = 1; round <= 5; round++) {
+      const { run } = await store.start(playerId, today, number, presetOpeningWords(3));
+      for (let round = 1; round <= 3; round++) {
         for (let guess = 1; guess <= 5; guess++) {
           const current = (await store.get(run.id))!;
           const cached = await store.cachedAnswer(current);
