@@ -54,7 +54,7 @@ for (const [name, makeStore] of stores) {
       expect(response.status).toBe(200);
       const { run: game } = await response.json();
       expect(game.theme).toBe(theme);
-      expect(game.rounds).toHaveLength(5);
+      expect(game.rounds).toHaveLength(3);
       expect(game.current).toMatchObject({ opening: true, wordA: "", wordB: "", ready: true });
       const record = (await dailyStore.get(game.id))!;
       expect(record).toMatchObject({ theme });

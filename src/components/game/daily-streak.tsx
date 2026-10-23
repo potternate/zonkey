@@ -17,7 +17,7 @@ export function DailyStreakSummary({ streak }: { streak: DailyStreak }) {
         </div>
       </dl>
       <p className="mt-3 text-center text-[11px] leading-5 text-muted-foreground">
-        Finish all five Daily rounds before midnight UTC. Every completed score counts.
+        Finish all three Daily rounds before midnight UTC. Every completed score counts.
       </p>
     </div>
   );

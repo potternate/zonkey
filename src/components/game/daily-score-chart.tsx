@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/client/api";
+import { DAILY_MAX_SCORE } from "@/lib/game/daily-run";
 import type { DailyScoreResults } from "@/lib/game/daily-run";
 
 export function DailyScoreChart({ id, score }: { id: string; score: number }) {
@@ -25,12 +26,12 @@ export function DailyScoreChart({ id, score }: { id: string; score: number }) {
 
   const largest = Math.max(1, ...results?.distribution.map((bucket) => bucket.count) ?? []);
   const points = results?.distribution.map((bucket) => ({
-    x: 10 + bucket.score / 5000 * 500,
+    x: 10 + bucket.score / DAILY_MAX_SCORE * 500,
     y: 148 - bucket.count / largest * 110,
   })) ?? [];
   const line = points.map((point) => `${point.x},${point.y}`).join(" ");
   const own = results?.distribution.find((bucket) => bucket.score === score);
-  const ownX = 10 + score / 5000 * 500;
+  const ownX = 10 + score / DAILY_MAX_SCORE * 500;
   const ownY = 148 - (own?.count ?? 0) / largest * 110;
 
   return (
@@ -50,7 +51,7 @@ export function DailyScoreChart({ id, score }: { id: string; score: number }) {
           </p>
           <p className="text-xs text-muted-foreground">{results.totalPlayers.toLocaleString("en-US")} player{results.totalPlayers === 1 ? "" : "s"} finished</p>
           <svg viewBox="0 0 520 180" role="img" aria-labelledby="score-chart-title score-chart-description" className="w-full overflow-visible">
-            <title id="score-chart-title">Completed Daily scores from 0 to 5,000</title>
+            <title id="score-chart-title">Completed Daily scores from 0 to {DAILY_MAX_SCORE.toLocaleString("en-US")}</title>
             <desc id="score-chart-description">
               Actual player counts at each score. Your score is {score}.
               {results.distribution.map((bucket) => `${bucket.score} points: ${bucket.count} players.`).join(" ")}
@@ -61,8 +62,8 @@ export function DailyScoreChart({ id, score }: { id: string; score: number }) {
             <line x1={ownX} x2={ownX} y1="15" y2="148" className="stroke-success" strokeDasharray="4 4" />
             <circle cx={ownX} cy={ownY} r="5" className="fill-success" />
             <text x="10" y="172" fontSize="12" className="fill-muted-foreground">0</text>
-            <text x="260" y="172" textAnchor="middle" fontSize="12" className="fill-muted-foreground">2,500</text>
-            <text x="510" y="172" textAnchor="end" fontSize="12" className="fill-muted-foreground">5,000</text>
+            <text x="260" y="172" textAnchor="middle" fontSize="12" className="fill-muted-foreground">{(DAILY_MAX_SCORE / 2).toLocaleString("en-US")}</text>
+            <text x="510" y="172" textAnchor="end" fontSize="12" className="fill-muted-foreground">{DAILY_MAX_SCORE.toLocaleString("en-US")}</text>
           </svg>
           <p className="text-xs text-success">Your score: {score.toLocaleString("en-US")}</p>
           <p className="text-xs leading-relaxed text-muted-foreground">Actual scores for this Daily. Higher is better; ties aren&rsquo;t beaten. Archive and unfinished games aren&rsquo;t included.</p>

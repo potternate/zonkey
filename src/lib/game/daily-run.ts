@@ -5,9 +5,9 @@ import type { RoundView, StartingPair } from "./types";
 import { CURATED_DAILY_FROM, curatedDailyExtras } from "./curated-pairs";
 import type { UnlimitedTheme } from "./themes";
 
-export const DAILY_ROUNDS = 5;
+export const DAILY_ROUNDS = 3;
 export const DAILY_GUESSES = 5;
-export const DAILY_MAX_SCORE = 5_000;
+export const DAILY_MAX_SCORE = 3_000;
 export const DAILY_POINTS = [1_000, 800, 600, 400, 200] as const;
 
 export function dailyPairsForPuzzle(number: number): StartingPair[] {
@@ -17,7 +17,7 @@ export function dailyPairsForPuzzle(number: number): StartingPair[] {
   }
   return [
     pairForPuzzle(number),
-    ...Array.from({ length: DAILY_ROUNDS - 1 }, (_, index) =>
+    ...Array.from({ length: 4 }, (_, index) =>
       STARTING_PAIRS[((number - 2 + (index + 1) * 997) % STARTING_PAIRS.length + STARTING_PAIRS.length) % STARTING_PAIRS.length],
     ),
   ];
@@ -99,7 +99,7 @@ export function buildDailyShareText(run: DailyRunView, url?: string): string {
   );
   return [
     run.mode === "unlimited" ? "Zonkey Unlimited" : `Zonkey ${run.mode === "archive" ? "Archive " : ""}#${run.puzzleNumber}`,
-    `${run.score.toLocaleString("en-US")} / 5,000 🦓`,
+    `${run.score.toLocaleString("en-US")} / ${DAILY_MAX_SCORE.toLocaleString("en-US")} 🦓`,
     "",
     ...rows,
     ...(url ? [url] : []),

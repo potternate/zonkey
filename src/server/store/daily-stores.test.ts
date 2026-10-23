@@ -30,8 +30,8 @@ if (url && key) {
     }).eq("id", legacy.id);
     expect(fixture.error).toBeNull();
     const number = puzzleNumberForDate(today);
-    const { run } = await newStore.start(playerId, today, number, presetOpeningWords(5));
-    for (let round = 1; round <= 5; round++) {
+    const { run } = await newStore.start(playerId, today, number, presetOpeningWords(3));
+    for (let round = 1; round <= 3; round++) {
       let current = (await newStore.get(run.id))!;
       const answer = await newStore.cachedAnswer(current) ?? "water";
       await newStore.commitAnswer({ id: run.id, playerId, round, guess: 1 }, answer);

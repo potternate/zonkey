@@ -35,7 +35,7 @@ export function Landing({
       <div className="mx-auto w-full max-w-md rounded-[2rem] border bg-card p-5 text-center shadow-sm sm:p-7">
         <div className="mb-5 flex items-center justify-between text-xs text-muted-foreground">
           <span className="eyebrow text-primary">Daily {puzzleNumber !== null ? `#${puzzleNumber}` : ""}</span>
-          <span>5 rounds · 5 guesses each</span>
+          <span>3 rounds · 5 guesses each</span>
         </div>
         <div className="space-y-3">
           <Button onClick={() => onPlay("daily")} disabled={busy} className="h-14 w-full justify-between rounded-xl px-5 text-base font-bold">

@@ -10,12 +10,12 @@ const questions = [
   {
     question: "How do you play Zonkey?",
     answer:
-      "Enter your starting word to reveal Zonkey's preset word. If they differ, use that pair to choose a connection. For example, your donkey and the AI's zebra can both lead to Zonkey, a donkey–zebra hybrid. Different answers become the next pair until you match. Daily, Unlimited, and Archive all have five rounds with five guesses per round, including your opening word. Connecting sooner earns more points, up to 5,000 in total.",
+      "Enter your starting word to reveal Zonkey's preset word. If they differ, use that pair to choose a connection. For example, your donkey and the AI's zebra can both lead to Zonkey, a donkey–zebra hybrid. Different answers become the next pair until you match. Daily, Unlimited, and Archive all have three rounds with five guesses per round, including your opening word. Connecting sooner earns more points, up to 3,000 in total.",
   },
   {
     question: "Is the Daily puzzle the same for everyone?",
     answer:
-      "Yes. Every player faces the same five preset Daily opening words on the same UTC date, revealed after entering their own word. Later AI answers are shared whenever players reach the same pair at the same guess in a round. Finish all five rounds to compare your score with other players. Past Dailies use the same five-round opening format in Archive.",
+      "Yes. Every player faces the same three preset Daily opening words on the same UTC date, revealed after entering their own word. Later AI answers are shared whenever players reach the same pair at the same guess in a round. Finish all three rounds to compare your score with other players. Past Dailies use the same three-round opening format in Archive.",
   },
   {
     question: "Can I play more than once a day?",
@@ -25,7 +25,7 @@ const questions = [
   {
     question: "How do Daily streaks work?",
     answer:
-      "Finish all five Daily rounds before midnight UTC on their original day to add to your streak. Any completed score counts, including zero. Yesterday's streak stays active while you have time to finish today's puzzle. Missing a day resets your current streak, but your best streak is saved. Previous on-time Daily completions still count. Archive practice does not change your streak.",
+      "Finish all three Daily rounds before midnight UTC on their original day to add to your streak. Any completed score counts, including zero. Yesterday's streak stays active while you have time to finish today's puzzle. Missing a day resets your current streak, but your best streak is saved. Previous on-time Daily completions still count. Archive practice does not change your streak.",
   },
   {
     question: "How do I play past Daily puzzles?",
@@ -46,7 +46,7 @@ const videoGame = {
   url: "https://zonkey.io",
   image: "https://zonkey.io/opengraph-image.png",
   description:
-    "A free daily word association game with five rounds, five guesses per round, and scores up to 5,000 points.",
+    "A free daily word association game with three rounds, five guesses per round, and scores up to 3,000 points.",
   applicationCategory: "Game",
   applicationSubCategory: "Word game",
   gamePlatform: "Web browser",

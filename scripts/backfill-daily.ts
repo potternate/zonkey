@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { dailyArchiveDates } from "../src/lib/game/archive";
 import { puzzleNumberForDate } from "../src/lib/game/daily";
+import { DAILY_ROUNDS } from "../src/lib/game/daily-run";
 import { presetOpeningWords } from "../src/server/opening-words";
 
 const puzzles = dailyArchiveDates().map((date) => {
@@ -8,7 +9,7 @@ const puzzles = dailyArchiveDates().map((date) => {
   return { date, number };
 });
 const apply = process.argv.includes("--apply");
-console.log(`${apply ? "Backfilling" : "Dry run:"} ${puzzles.length} player-first five-round puzzles (${puzzles[0]?.date} through ${puzzles.at(-1)?.date}).`);
+console.log(`${apply ? "Backfilling" : "Dry run:"} ${puzzles.length} player-first three-round puzzles (${puzzles[0]?.date} through ${puzzles.at(-1)?.date}).`);
 async function backfill() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -16,7 +17,7 @@ async function backfill() {
   const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   for (const puzzle of puzzles) {
     const { error } = await db.rpc("seed_scored_puzzle", {
-      p_date: puzzle.date, p_number: puzzle.number, p_opening_words: presetOpeningWords(5),
+      p_date: puzzle.date, p_number: puzzle.number, p_opening_words: presetOpeningWords(DAILY_ROUNDS),
     });
     if (error) throw new Error(`Backfill failed: ${error.message}`);
   }

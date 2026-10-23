@@ -6,23 +6,25 @@ zonkey.io
 
 You and the AI each pick a word connecting two endpoints. Different words become the next guess's endpoints; matching words connect. From guess 2 onward, equivalent meanings also connect.
 
-**Daily, Archive, and Unlimited** all have five independent rounds with up to five guesses per round. Players enter their own word first; Zonkey's preset word is revealed only after submission. This is guess 1; exact opening matches earn 1,000 points. Otherwise the two words become the next pair and convergence proceeds normally. Connecting on guesses 1–5 earns **1,000 / 800 / 600 / 400 / 200** points; an exhausted round earns **0**. Always continue through all five rounds for a total out of **5,000**. Everyone faces the same five preset words for a Daily date, including historical dates. Later AI commitments are shared for identical date/round/guess/endpoint states. Unlimited selects five fresh random or themed words per game. The catalog has 1,365 words and 6,924 distinct pairs.
+**Daily, Archive, and Unlimited** all have three independent rounds with up to five guesses per round. Players enter their own word first; Zonkey's preset word is revealed only after submission. This is guess 1; exact opening matches earn 1,000 points. Otherwise the two words become the next pair and convergence proceeds normally. Connecting on guesses 1–5 earns **1,000 / 800 / 600 / 400 / 200** points; an exhausted round earns **0**. Always continue through all three rounds for a total out of **3,000**. Everyone faces the same three preset words for a Daily date, including historical dates. Later AI commitments are shared for identical date/round/guess/endpoint states. Unlimited selects three fresh random or themed words per game. The catalog has 1,365 words and 6,924 distinct pairs.
 
 Daily streaks count consecutive UTC days where the player finishes that day's puzzle before midnight. Wins and losses both count. A streak ending yesterday remains current until today's deadline; missing a day resets the current streak while preserving the best. Existing on-time completions count automatically. Home, Daily results, and Daily scores show both current and best streaks.
 
 **Archive** is the third mode beside Daily and Unlimited. It opens a month calendar with a list of that month's past puzzles underneath. Unplayed dates can be played; completed dates show the saved score and reopen the result; unfinished dates resume their saved game. Saved player-first Daily results appear alongside Archive attempts, including dates older than the recent-scores list.
 
-Every published date, starting September 30, 2026, is playable in the player-first five-round format. Puzzle numbers are preserved and each date has five hidden preset words. One run is saved per player/date and can be resumed. Unlimited runs have separate IDs and can be restored with `/?run=ID`. Archive and Unlimited runs do not count in live Daily distributions or streaks. Previous format records remain stored without assigning invented scores, but cannot be played or resumed through the app.
+Every published date, starting September 30, 2026, is playable in the player-first three-round format. Puzzle numbers are preserved and each date has three hidden preset words. One run is saved per player/date and can be resumed. Unlimited runs have separate IDs and can be restored with `/?run=ID`. Archive and Unlimited runs do not count in live Daily distributions or streaks. Previous format records remain stored without assigning invented scores, but cannot be played or resumed through the app.
 
-After finishing all five Daily rounds, a curve plots actual player counts at every attainable score (0–5,000 in 200-point steps), with your score highlighted and counts included in the chart's screen-reader description. It does not fit a synthetic normal distribution. “You did better than X% of players” compares strictly lower scores among other completed live Daily runs for that date. Ties are not beaten; your own run is included in the chart but excluded from the percentile. The percentage rounds down; the first finisher sees a waiting message. Archive, active, and previous format results are excluded.
+After finishing all three Daily rounds, a curve plots actual player counts at every attainable score (0–3,000 in 200-point steps), with your score highlighted and counts included in the chart's screen-reader description. It does not fit a synthetic normal distribution. “You did better than X% of players” compares strictly lower scores among other completed live Daily runs for that date. Ties are not beaten; your own run is included in the chart but excluded from the percentile. The percentage rounds down; the first finisher sees a waiting message. Archive, active, and previous format results are excluded.
 
 ### Database rollout and backfill
 
 Apply migrations in order through `20261009120000_scored_player_first_modes.sql` **before** deploying this app version. The additive migration uses private `scored_*` tables and RPCs for all three modes; existing records remain intact for rollback and on-time streak history. Previously committed player-first puzzle definitions are copied without replacing their words. Only the server's service role can access state, AI commitments, and aggregates. Database row locks and expected round/guess numbers make retries and concurrent submissions safe. A request UUID makes Unlimited creation retries reuse the same run.
 
-With `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set, run `npm run backfill:daily` for a dry run, then `npm run backfill:daily -- --apply` to seed five player-first opening words for every published date through the private `seed_scored_puzzle` RPC. It only inserts missing definitions and is safe to repeat; it never overwrites a puzzle or changes player results. New dates commit their canonical words when first played.
+`20261022020000_three_round_modes.sql` converts every scored puzzle and run to three rounds. Each date keeps its first three preset words; saved runs keep their round 1–3 results, and finishing round 3 completes the run. Rounds 4–5 are copied to private `scored_five_round_*` tables before removal. During rollout, the database stores only the first three words if an older deployment sends five.
 
-Run `npm run test:db` against local Supabase to test both stores, including the five-round atomic state transitions and database permissions. It uses credentials from the local Docker containers and never prints or persists their signing keys.
+With `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set, run `npm run backfill:daily` for a dry run, then `npm run backfill:daily -- --apply` to seed three player-first opening words for every published date through the private `seed_scored_puzzle` RPC. It only inserts missing definitions and is safe to repeat; it never overwrites a puzzle or changes player results. New dates commit their canonical words when first played.
+
+Run `npm run test:db` against local Supabase to test both stores, including the three-round atomic state transitions and database permissions. It uses credentials from the local Docker containers and never prints or persists their signing keys.
 
 ## Play
 
@@ -82,8 +84,8 @@ Sandbox purchases never unlock the live paywall, even if a preview shares the da
 
 ## Gameplay upgrades
 
-- Every Daily and Archive date uses five server-selected opening words. Already committed opening words and saved results are never overwritten.
-- Scores shows a 7-day average, a 30-day trend, and guesses per solved round for completed five-round runs. Daily is grouped by puzzle date; Archive by actual completion date. Failed rounds are excluded from guess averages.
+- Every Daily and Archive date uses three server-selected opening words. Already committed opening words and saved results are never overwritten.
+- Scores shows a 7-day average, a 30-day trend, and guesses per solved round for completed runs. Daily is grouped by puzzle date; Archive by actual completion date. Failed rounds are excluded from guess averages.
 - Unlimited offers Random, Animals, Food, and Outdoors on a separate picker. The selected theme is saved with the game and reused by Play again. Random retains the original full pool.
 - Each OpenAI attempt has a six-second deadline and no hidden SDK retries. Word generation uses `OPENAI_MODEL` first, then `OPENAI_FALLBACK_MODEL` (default `gpt-4.1-nano`) on failure; the judge retries the same judge model once. Prompts, validation, shared Daily commitments, and AI quotas are unchanged. Quotas count logical AI operations, including failed operations. Preparation and submission retry once in the browser; a lost submission response is recovered from saved state before reposting. Failed requests preserve the typed word and never consume a guess.
 - Before deploying, apply `20261009060000_personal_progress.sql` and `20261009070000_unlimited_themes.sql` after existing migrations. Both are additive; existing games have no theme.
@@ -91,7 +93,7 @@ Sandbox purchases never unlock the live paywall, even if a preview shares the da
 
 ### Player-first openings
 
-Apply `20261009110000_player_first_openings.sql`, followed by `20261009120000_scored_player_first_modes.sql`, before deploying. The server selects preset words using cryptographic randomness from the existing catalog, without an LLM request. Five unique Daily words are committed atomically on first publication; concurrent starts reuse the canonical definition. Unlimited commits five words when created. Themes restrict Zonkey's opening words to that category; the player can choose any word.
+Apply `20261009110000_player_first_openings.sql`, `20261009120000_scored_player_first_modes.sql`, and `20261022020000_three_round_modes.sql` before deploying. The server selects preset words using cryptographic randomness from the existing catalog, without an LLM request. Three unique Daily words are committed atomically on first publication; concurrent starts reuse the canonical definition. Unlimited commits three words when created. Themes restrict Zonkey's opening words to that category; the player can choose any word.
 
 The opening entry is normalized and exact-match checked without invoking the AI or judge. Later guesses retain AI generation, semantic judging, quotas, and request recovery. An opening match ends that round. There is no paired-opening gameplay route or cutoff date. Client views, SEO pages, and score summaries never contain unsubmitted preset words. Pair-quality analysis remains available for historical records; the backfill command seeds the player-first format for every date.
 
@@ -165,9 +167,9 @@ Returning players' anonymous IDs are copied to `zonkey:player-id` from the legac
 
 The client never receives the current round's AI answer, and the server owns round number, game state, canonical words and win condition. If AI generation or judging fails, the round stays unanswered, no attempt is counted, and the player can retry.
 
-All five opening answers are stored privately when the game starts. Later guesses are prepared as their endpoint words become known. Daily and Archive later answers are shared in `scored_ai_answers`; Unlimited commitments belong to the run.
+All three opening answers are stored privately when the game starts. Later guesses are prepared as their endpoint words become known. Daily and Archive later answers are shared in `scored_ai_answers`; Unlimited commitments belong to the run.
 
-Daily puzzle: `puzzle # = days since 2026-09-30 + 1`, so October 1, 2026 is #2. The server's UTC date controls the live Daily for everyone. Each published date has one canonical set of five opening words and one player-first attempt per identity. A completed puzzle opens its saved result. Historical attempts from older formats stay in their original tables and do not prevent playing a date in the new format. Signed-in accounts restore the same identity across devices.
+Daily puzzle: `puzzle # = days since 2026-09-30 + 1`, so October 1, 2026 is #2. The server's UTC date controls the live Daily for everyone. Each published date has one canonical set of three opening words and one player-first attempt per identity. A completed puzzle opens its saved result. Historical attempts from older formats stay in their original tables and do not prevent playing a date in the new format. Signed-in accounts restore the same identity across devices.
 
 Opening guesses are normalized without an LLM and counted exactly. Daily and Archive boards are grouped by date and round; Unlimited boards are grouped by round. Counts are updated in the submission transaction so concurrent retries cannot count twice. Boards are only sent after the player has submitted their opening guess.
 
@@ -181,13 +183,11 @@ Sharing calls `navigator.share({ title, text })` directly from the tap, before a
 
 ```text
 Zonkey Daily #2
-3,000 / 5,000
+2,400 / 3,000
 
 🟩➖➖➖➖
 ⬜🟩➖➖➖
 ⬜⬜🟩➖➖
-⬜⬜⬜🟩➖
-⬜⬜⬜⬜🟩
 https://zonkey.io/?daily=2026-10-01
 ```
 

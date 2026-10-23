@@ -55,20 +55,20 @@ describe("Daily definition compatibility", () => {
   it("keeps the first published format and words, regardless of later start parameters", async () => {
     const store = new DailyMemoryStore();
     const starts = await Promise.all(["zebra", "elephant"].map((word) =>
-      store.start(crypto.randomUUID(), "2026-09-30", 1, [word, "mountain", "coffee", "ocean", "moon"]),
+      store.start(crypto.randomUUID(), "2026-09-30", 1, [word, "mountain", "coffee"]),
     ));
     expect(starts[0].run.openingWords).toEqual(starts[1].run.openingWords);
     expect(JSON.stringify(toDailyView(starts[1].run))).not.toContain("zebra");
-    const first = await store.start(crypto.randomUUID(), "2026-10-01", 2, presetOpeningWords(5));
-    const another = await store.start(crypto.randomUUID(), "2026-10-01", 2, presetOpeningWords(5));
+    const first = await store.start(crypto.randomUUID(), "2026-10-01", 2, presetOpeningWords(3));
+    const another = await store.start(crypto.randomUUID(), "2026-10-01", 2, presetOpeningWords(3));
     expect(another.run.openingWords).toEqual(first.run.openingWords);
     expect(toDailyView(another.run).rounds[0].startPair).toBeNull();
   });
 
   it("selects valid distinct words from the catalog and the selected theme", () => {
     for (const theme of [undefined, "animals", "food", "outdoors"] as const) {
-      const words = presetOpeningWords(5, theme);
-      expect(new Set(words).size).toBe(5);
+      const words = presetOpeningWords(3, theme);
+      expect(new Set(words).size).toBe(3);
       for (const word of words) expect(word).toMatch(/^[a-z]+(-[a-z]+)*$/);
     }
     expect(presetOpeningWords(1365).every((word) => /^[a-z]+(-[a-z]+)*$/.test(word))).toBe(true);
@@ -183,15 +183,15 @@ describe.skipIf(!container)("historical player-first backfill", () => {
             end if;
           end loop;
           select count(*) into v_count from public.scored_puzzles
-            where puzzle_date between '2026-09-30'::date and current_date and jsonb_array_length(opening_words) = 5;
+            where puzzle_date between '2026-09-30'::date and current_date and jsonb_array_length(opening_words) = 3;
           if v_count <> current_date - '2026-09-30'::date + 1 then raise exception 'Historical dates are missing'; end if;
           v_new := (public.start_scored_run(v_player, '2026-09-30', 1,
             '["zebra","mountain","coffee","ocean","moon"]'::jsonb)->>'id')::uuid;
           if v_new = v_old then raise exception 'Reused an old-format attempt'; end if;
           if (select score from public.daily_runs where id = v_old) <> 4000 then raise exception 'Rewrote an old score'; end if;
           if (select count(*) from public.scored_rounds where run_id = v_new
-            and word_a = '' and word_b = '' and ai_answer is not null) <> 5 then
-            raise exception 'Historical run did not get five committed hidden openings';
+            and word_a = '' and word_b = '' and ai_answer is not null) <> 3 then
+            raise exception 'Historical run did not get three committed hidden openings';
           end if;
         end;
         $$;

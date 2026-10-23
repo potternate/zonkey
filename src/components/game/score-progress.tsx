@@ -1,3 +1,4 @@
+import { DAILY_MAX_SCORE } from "@/lib/game/daily-run";
 import type { DailyRunEntry } from "@/lib/game/daily-run";
 import { scoreProgress } from "@/lib/game/progress";
 
@@ -8,7 +9,7 @@ export function ScoreProgress({ history, mode, today }: {
   const todayMs = Date.parse(`${today}T00:00:00Z`);
   const points = progress.points.map(({ date, score }) => ({
     x: 12 + (29 - (todayMs - Date.parse(`${date}T00:00:00Z`)) / 86_400_000) * 276 / 29,
-    y: 88 - score * 72 / 5_000,
+    y: 88 - score * 72 / DAILY_MAX_SCORE,
     date, score,
   }));
   return (
@@ -20,14 +21,14 @@ export function ScoreProgress({ history, mode, today }: {
       </dl>
       {points.length > 0 ? (
         <figure>
-          <svg viewBox="0 0 300 104" className="w-full text-primary" role="img" aria-label="Scores over the last 30 days, from 0 to 5,000 points">
+          <svg viewBox="0 0 300 104" className="w-full text-primary" role="img" aria-label={`Scores over the last 30 days, from 0 to ${DAILY_MAX_SCORE.toLocaleString("en-US")} points`}>
             <desc>{points.map(({ date, score }) => `${date}: ${score} points`).join("; ")}</desc>
             {[16, 52, 88].map((y) => <line key={y} x1="12" x2="288" y1={y} y2={y} stroke="currentColor" opacity="0.15" />)}
             <polyline points={points.map(({ x, y }) => `${x},${y}`).join(" ")} fill="none" stroke="currentColor" strokeWidth="2" />
             {points.map(({ x, y, date, score }) => <circle key={date} cx={x} cy={y} r="3" fill="currentColor"><title>{date}: {score} points</title></circle>)}
           </svg>
           <figcaption className="flex justify-between text-[11px] text-muted-foreground">
-            <span>Last 30 days · {mode === "daily" ? "puzzle date" : "played date"}</span><span>0–5,000 pts</span>
+            <span>Last 30 days · {mode === "daily" ? "puzzle date" : "played date"}</span><span>0–{DAILY_MAX_SCORE.toLocaleString("en-US")} pts</span>
           </figcaption>
         </figure>
       ) : <p className="text-xs text-muted-foreground">Finish a puzzle to start your trend.</p>}

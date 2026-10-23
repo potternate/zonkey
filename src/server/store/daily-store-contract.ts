@@ -5,12 +5,12 @@ import { DailyConflictError, toDailyView } from "./daily-types";
 import type { DailyRunRecord, DailyStore, DailySubmission } from "./daily-types";
 
 export function describeDailyContract(name: string, makeStore: () => DailyStore) {
-  describe(`${name} five-round Daily store`, () => {
+  describe(`${name} three-round Daily store`, () => {
     const today = toIsoDate(new Date());
     const number = puzzleNumberForDate(today);
     const player = () => crypto.randomUUID();
     const start = async (store: DailyStore, playerId = player(), date = today) =>
-      (await store.start(playerId, date, puzzleNumberForDate(date), presetOpeningWords(5))).run;
+      (await store.start(playerId, date, puzzleNumberForDate(date), presetOpeningWords(3))).run;
 
     async function prepare(store: DailyStore, run: DailyRunRecord) {
       const round = run.rounds[run.currentRound - 1];
@@ -32,7 +32,7 @@ export function describeDailyContract(name: string, makeStore: () => DailyStore)
     }
 
     async function finish(store: DailyStore, run: DailyRunRecord, targets: number[]) {
-      for (let round = 1; round <= 5; round++) {
+      for (let round = 1; round <= 3; round++) {
         const target = targets[round - 1];
         for (let guess = 1; guess <= (target || 5); guess++) {
           run = await prepare(store, (await store.get(run.id))!);
@@ -42,14 +42,14 @@ export function describeDailyContract(name: string, makeStore: () => DailyStore)
       return (await store.get(run.id))!;
     }
 
-    it("atomically starts one resumable five-round run per player/date", async () => {
+    it("atomically starts one resumable three-round run per player/date", async () => {
       const store = makeStore();
       const playerId = player();
-      const input = () => store.start(playerId, today, number, presetOpeningWords(5));
+      const input = () => store.start(playerId, today, number, presetOpeningWords(3));
       const [a, b] = await Promise.all([input(), input()]);
       expect(a.run.id).toBe(b.run.id);
       expect([a.created, b.created].filter(Boolean)).toHaveLength(1);
-      expect(a.run.rounds).toHaveLength(5);
+      expect(a.run.rounds).toHaveLength(3);
       expect(a.run.rounds.every((round) => round.guesses.length === 0)).toBe(true);
       expect(a.run.mode).toBe("daily");
     });
@@ -127,11 +127,11 @@ export function describeDailyContract(name: string, makeStore: () => DailyStore)
       expect((await store.get(run.id))?.rounds[0].guesses).toHaveLength(0);
     });
 
-    it("tapers points per round and finishes only after all five", async () => {
+    it("tapers points per round and finishes only after all three", async () => {
       const store = makeStore();
-      const run = await finish(store, await start(store), [1, 2, 3, 4, 5]);
-      expect(run.score).toBe(3000);
-      expect(run.rounds.map((round) => round.score)).toEqual([1000, 800, 600, 400, 200]);
+      const run = await finish(store, await start(store), [1, 2, 3]);
+      expect(run.score).toBe(2400);
+      expect(run.rounds.map((round) => round.score)).toEqual([1000, 800, 600]);
       expect(run.status).toBe("completed");
       expect(run.completedAt).not.toBeNull();
       expect(toDailyView(run).current).toBeNull();
@@ -153,8 +153,8 @@ export function describeDailyContract(name: string, makeStore: () => DailyStore)
       expect(await store.results(completed.id, player())).toBeNull();
       const results = (await store.results(completed.id, completed.playerId))!;
       expect(results.distribution.reduce((sum, row) => sum + row.count, 0)).toBe(results.totalPlayers);
-      expect(results.distribution.find((row) => row.score === 5000)?.count).toBeGreaterThanOrEqual(1);
-      const perfect = results.distribution.find((row) => row.score === 5000)!.count;
+      expect(results.distribution.find((row) => row.score === 3000)?.count).toBeGreaterThanOrEqual(1);
+      const perfect = results.distribution.find((row) => row.score === 3000)!.count;
       expect(results.betterThanPercent).toBe(results.totalPlayers > 1 ?
         Math.floor((results.totalPlayers - perfect) * 100 / (results.totalPlayers - 1)) : null);
       const archive = await finish(store, await start(store, player(), "2026-09-30"), [1, 1, 1, 1, 1]);
@@ -170,32 +170,32 @@ export function describeDailyContract(name: string, makeStore: () => DailyStore)
       await start(store, playerId, "2026-09-30");
       const summary = await store.summary(playerId, today);
       expect(summary.history).toHaveLength(2);
-      expect(summary.history.find((entry) => entry.id === run.id)?.score).toBe(5000);
+      expect(summary.history.find((entry) => entry.id === run.id)?.score).toBe(3000);
       expect(summary.streak.current).toBe(1);
       expect((await store.summary(player(), today)).history).toEqual([]);
     });
 
-    it("starts distinct themed Unlimited games, resumes retries once, and completes five scored rounds", async () => {
+    it("starts distinct themed Unlimited games, resumes retries once, and completes three scored rounds", async () => {
       const store = makeStore();
       const playerId = player();
       const requestId = crypto.randomUUID();
-      const words = presetOpeningWords(5, "animals");
+      const words = presetOpeningWords(3, "animals");
       const [a, b] = await Promise.all([
         store.startUnlimited(playerId, words, "animals", requestId),
-        store.startUnlimited(playerId, presetOpeningWords(5, "food"), "food", requestId),
+        store.startUnlimited(playerId, presetOpeningWords(3, "food"), "food", requestId),
       ]);
       expect(a.id).toBe(b.id);
       expect(a).toMatchObject({ mode: "unlimited", puzzleNumber: null });
       expect(a.theme).toBe(b.theme);
       expect(a.openingWords).toEqual(b.openingWords);
-      expect(a.rounds).toHaveLength(5);
+      expect(a.rounds).toHaveLength(3);
       const another = await store.startUnlimited(playerId, words, "animals");
       expect(another.id).not.toBe(a.id);
       const daily = await start(store, playerId);
       expect(daily.id).not.toBe(a.id);
       await expect(store.startUnlimited(player(), words, "animals", requestId)).rejects.toThrow();
       let run = a;
-      for (let round = 1; round <= 5; round++) {
+      for (let round = 1; round <= 3; round++) {
         for (let guess = 1; guess <= round; guess++) {
           run = await prepare(store, (await store.get(run.id))!);
           const answer = guess === round ? run.rounds[round - 1].aiAnswer! : "different";
@@ -206,9 +206,9 @@ export function describeDailyContract(name: string, makeStore: () => DailyStore)
         }
       }
       run = (await store.get(a.id))!;
-      expect(run).toMatchObject({ status: "completed", score: 3000 });
-      expect(run.rounds.map((round) => round.score)).toEqual([1000, 800, 600, 400, 200]);
-      expect((await store.summary(playerId, today)).history.find((entry) => entry.id === run.id)).toMatchObject({ mode: "unlimited", score: 3000 });
+      expect(run).toMatchObject({ status: "completed", score: 2400 });
+      expect(run.rounds.map((round) => round.score)).toEqual([1000, 800, 600]);
+      expect((await store.summary(playerId, today)).history.find((entry) => entry.id === run.id)).toMatchObject({ mode: "unlimited", score: 2400 });
       expect(await store.results(run.id, playerId)).toBeNull();
     });
   });

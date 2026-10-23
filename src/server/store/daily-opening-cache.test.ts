@@ -8,11 +8,11 @@ import type { DailyStore } from "./daily-types";
 
 function cacheContract(name: string, makeStore: () => DailyStore) {
   describe(`${name} opening answer cache`, () => {
-    it("commits all five preset words at creation and never exposes a future answer early", async () => {
+    it("commits all three preset words at creation and never exposes a future answer early", async () => {
       const store = makeStore();
       const date = toIsoDate(new Date());
       const number = puzzleNumberForDate(date);
-      const { run } = await store.start(crypto.randomUUID(), date, number, presetOpeningWords(5));
+      const { run } = await store.start(crypto.randomUUID(), date, number, presetOpeningWords(3));
       const opening = { ...run, currentRound: 2 };
       const canonical = await store.cachedAnswer(opening);
       expect(canonical).toBe(run.openingWords[1]);

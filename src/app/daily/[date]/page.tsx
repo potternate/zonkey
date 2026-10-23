@@ -23,7 +23,7 @@ export async function generateMetadata({
 
   const formatted = formatArchiveDate(date);
   const title = `Daily Word Game #${entry.number}: ${formatted}`;
-  const description = `Zonkey Daily #${entry.number} for ${formatted}: choose your opening word, reveal Zonkey's, and connect over five rounds in this daily word association game.`;
+  const description = `Zonkey Daily #${entry.number} for ${formatted}: choose your opening word, reveal Zonkey's, and connect over three rounds in this daily word association game.`;
 
   return {
     title,
@@ -77,7 +77,7 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
       name: "Zonkey",
       url: "https://zonkey.io",
     },
-    description: `Five word association rounds in Zonkey Daily #${entry.number}.`,
+    description: `Three word association rounds in Zonkey Daily #${entry.number}.`,
   };
 
   return (
@@ -117,7 +117,7 @@ export default async function DailyPuzzlePage({ params }: DailyPageProps) {
         </p>
 
         <p className="mx-auto mt-8 max-w-lg text-sm leading-7 text-muted-foreground">
-          Everyone faces the same five opening words, kept hidden until you submit yours. Different words become your next pair. Your opening entry is guess one. Play five rounds with five guesses each, earning up to 1,000 points per round and 5,000 in total.
+          Everyone faces the same three opening words, kept hidden until you submit yours. Different words become your next pair. Your opening entry is guess one. Play three rounds with five guesses each, earning up to 1,000 points per round and 3,000 in total.
         </p>
         <Link
           href={`/?daily=${date}`}

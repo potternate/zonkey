@@ -4,7 +4,7 @@ import { buildDailyShareText, dailyPairsForPuzzle, dailyRoundScore, dailyScoreRe
 import type { DailyRunView } from "./daily-run";
 import { toDailyView, type DailyRunRecord } from "@/server/store/daily-types";
 
-describe("five-round Daily rules", () => {
+describe("three-round Daily rules", () => {
   it("backfills the schedule while preserving the original first pair", () => {
     for (let number = 1; number <= 10_000; number++) {
       const pairs = dailyPairsForPuzzle(number);
@@ -35,7 +35,7 @@ describe("five-round Daily rules", () => {
     const pairs = dailyPairsForPuzzle(1);
     const run: DailyRunRecord = {
       id: "run", playerId: "you", date: "2026-09-30", puzzleNumber: 1, mode: "archive",
-      status: "active", currentRound: 1, score: 0, completedAt: null, openingWords: Array(5).fill("hiddenword"),
+      status: "active", currentRound: 1, score: 0, completedAt: null, openingWords: Array(3).fill("hiddenword"),
       rounds: pairs.map((pair, index) => ({
         number: index + 1, wordA: "", wordB: "", aiAnswer: "hiddenword", status: "active", score: 0, guesses: [],
       })),
@@ -44,10 +44,10 @@ describe("five-round Daily rules", () => {
     expect(toDailyView(run).current?.ready).toBe(true);
   });
 
-  it("shares five spoiler-free rows and the total score", () => {
+  it("shares three spoiler-free rows and the total score", () => {
     const run: DailyRunView = {
       id: "run", date: "2026-09-30", puzzleNumber: 1, mode: "daily", status: "completed", score: 1000, current: null,
-      rounds: dailyPairsForPuzzle(1).map((startPair, index) => ({
+      rounds: dailyPairsForPuzzle(1).slice(0, 3).map((startPair, index) => ({
         number: index + 1, startPair, status: index === 0 ? "won" : "lost", score: index === 0 ? 1000 : 0,
         guesses: Array.from({ length: index === 0 ? 1 : 5 }, (_, guess) => ({
           number: guess + 1, wordA: "donkey", wordB: "zebra", playerAnswer: "hybrid", aiAnswer: "secret", matched: index === 0,
@@ -55,9 +55,9 @@ describe("five-round Daily rules", () => {
       })),
     };
     const text = buildDailyShareText(run, "https://zonkey.io/?daily=2026-09-30");
-    expect(text).toContain("1,000 / 5,000");
+    expect(text).toContain("1,000 / 3,000");
     expect(text).toContain("🟩➖➖➖➖");
     expect(text).not.toMatch(/donkey|zebra|hybrid|secret/);
-    expect(text.split("\n").filter((row) => /[⬜🟩]/u.test(row))).toHaveLength(5);
+    expect(text.split("\n").filter((row) => /[⬜🟩]/u.test(row))).toHaveLength(3);
   });
 });
