@@ -2,6 +2,9 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import PlusPage from "@/app/plus/page";
+import AccountPage from "@/app/account/page";
+import { AccountScreen } from "@/components/game/account-screen";
+import { ScoresScreen } from "@/components/game/scores-screen";
 import { Landing } from "@/components/game/landing";
 import { PlusScreen } from "@/components/game/plus-screen";
 import { GET as account } from "@/app/api/account/route";
@@ -44,7 +47,8 @@ function request() {
 describe("disabled paywall surfaces", () => {
   it("keeps both modes visible while removing all upgrade copy and links", () => {
     const html = renderToStaticMarkup(createElement(Landing, {
-      onPlay: vi.fn(), onScores: vi.fn(), scores: null, busy: false, error: null, plusEnabled: false, plus: false,
+      onPlay: vi.fn(), onScores: vi.fn(), scores: null, busy: false, error: null,
+      account: { enabled: false, accounts: true, email: null, plus: false, playerId: null, restore: false },
     }));
     expect(html).toContain("Unlimited");
     expect(html).toContain("Archive");
@@ -53,15 +57,35 @@ describe("disabled paywall surfaces", () => {
     expect(html).not.toContain("Your account");
   });
 
+  it("offers a free account from home and Scores without the paywall", () => {
+    const signedOut = { enabled: false, accounts: true, email: null, plus: false, playerId: null, restore: false };
+    const home = renderToStaticMarkup(createElement(Landing, {
+      onPlay: vi.fn(), onScores: vi.fn(), scores: null, busy: false, error: null, account: signedOut,
+    }));
+    expect(home).toContain('href="/account"');
+    expect(home).toContain("Sign in free");
+    const scores = renderToStaticMarkup(createElement(ScoresScreen, {
+      account: signedOut, scores: null, error: null, onHome: vi.fn(), onRetry: vi.fn(), onResult: vi.fn(), onDailyResult: vi.fn(),
+    }));
+    expect(scores).toContain('href="/account"');
+    const signedIn = renderToStaticMarkup(createElement(Landing, {
+      onPlay: vi.fn(), onScores: vi.fn(), scores: null, busy: false, error: null,
+      account: { ...signedOut, email: "player@example.com" },
+    }));
+    expect(signedIn).not.toContain("/account");
+    expect(signedIn).not.toContain("/plus");
+    expect(AccountPage().type).toBe(AccountScreen);
+  });
+
   it("redirects direct Plus visits home and restores the screen when enabled", () => {
     expect(() => PlusPage()).toThrow("redirect:/");
     state.enabled = true;
     expect(PlusPage().type).toBe(PlusScreen);
   });
 
-  it("retains authenticated history without publishing account prompts or querying purchases", async () => {
+  it("keeps free accounts signed in without Plus prompts or purchase queries", async () => {
     const response = await account(request());
-    expect(await response.json()).toMatchObject({ enabled: false, email: null, plus: false, restore: false });
+    expect(await response.json()).toMatchObject({ enabled: false, email: "player@example.com", plus: false, restore: false });
     expect(state.lookup).not.toHaveBeenCalled();
   });
 

@@ -6,6 +6,7 @@ import { ArrowRight, Infinity as InfinityIcon, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api, ApiError, type Account } from "@/lib/client/api";
 import { resetPlayerId, setPlayerId } from "@/lib/client/player-id";
+import { EmailSignIn } from "./email-sign-in";
 
 function errorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : "Something went wrong. Try again.";
@@ -20,9 +21,6 @@ function returnPath(): string {
 
 export function PlusScreen() {
   const [account, setAccount] = useState<Account | null>(null);
-  const [email, setEmail] = useState("");
-  const [token, setToken] = useState("");
-  const [codeSent, setCodeSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -70,25 +68,6 @@ export function PlusScreen() {
     return () => { cancelled = true; };
   }, [account?.enabled, account?.email, account?.plus, confirmRetry, refresh]);
 
-  async function signIn(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-    setMessage(null);
-    try {
-      if (codeSent) {
-        const { playerId } = await api.verify(email.trim(), token.trim());
-        setPlayerId(playerId);
-        await refresh();
-      } else {
-        await api.signIn(email.trim());
-        setCodeSent(true);
-        setMessage("Check your email for your sign-in code.");
-      }
-    } catch (err) { setError(errorMessage(err)); }
-    finally { setBusy(false); }
-  }
-
   async function buy() {
     setBusy(true);
     setError(null);
@@ -108,8 +87,6 @@ export function PlusScreen() {
     try {
       await api.signOut();
       resetPlayerId();
-      setCodeSent(false);
-      setToken("");
       setMessage(null);
       await refresh();
     } catch (err) { setError(errorMessage(err)); }
@@ -143,24 +120,7 @@ export function PlusScreen() {
             {busy ? "Checking…" : "Unlock for $5 once"}<ArrowRight />
           </Button>
         ) : account?.enabled ? (
-          <form onSubmit={signIn} className="space-y-3">
-            <label htmlFor="plus-email" className="block text-sm font-semibold">Email</label>
-            <input id="plus-email" type="email" autoComplete="email" value={email} required maxLength={254}
-              readOnly={codeSent || busy} onChange={(event) => setEmail(event.target.value)}
-              className="h-12 w-full rounded-xl border bg-background px-4 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary" />
-            {codeSent && <>
-              <label htmlFor="plus-code" className="block text-sm font-semibold">Sign-in code</label>
-              <input id="plus-code" autoComplete="one-time-code" inputMode="numeric" value={token} required
-                pattern="[0-9]{6,10}" maxLength={10} readOnly={busy} onChange={(event) => setToken(event.target.value)}
-                className="h-12 w-full rounded-xl border bg-background px-4 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary" />
-            </>}
-            <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl">
-              {busy ? "One moment…" : codeSent ? "Verify code" : "Continue with email"}<ArrowRight />
-            </Button>
-            {codeSent && <Button type="button" variant="ghost" disabled={busy} className="w-full"
-              onClick={() => { setCodeSent(false); setToken(""); setMessage(null); }}>Change email or resend code</Button>}
-            <p className="text-xs leading-5 text-muted-foreground">Already bought Plus? Sign in with the same email to restore access.</p>
-          </form>
+          <EmailSignIn id="plus" onSignedIn={refresh} note="Already bought Plus? Sign in with the same email to restore access." />
         ) : (
           <p role="status" className="text-sm text-muted-foreground">Loading your account…</p>
         )}

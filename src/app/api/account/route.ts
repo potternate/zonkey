@@ -17,7 +17,8 @@ export const GET = withErrors(async (req: Request) => {
   }
   return NextResponse.json({
     enabled,
-    email: enabled ? user?.email ?? null : null,
+    accounts: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_PUBLISHABLE_KEY),
+    email: user?.email ?? null,
     plus: enabled && user ? await hasPlusAccess(user.id) : false,
     playerId,
     restore,

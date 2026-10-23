@@ -4,18 +4,18 @@ import { Button } from "@/components/ui/button";
 import { puzzleNumberForDate } from "@/lib/game/daily";
 import type { GameMode } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
+import type { Account } from "@/lib/client/api";
 import { WordPairCard } from "./word";
 
 export function Landing({
-  onPlay, onScores, scores, busy, error, plusEnabled, plus,
+  onPlay, onScores, scores, busy, error, account,
 }: {
   onPlay: (mode: GameMode) => void;
   onScores: () => void;
   scores: PlayerScores | null;
   busy: boolean;
   error: string | null;
-  plusEnabled: boolean;
-  plus: boolean;
+  account: Account | null;
 }) {
   const daily = scores?.dailyRuns?.history.find((run) => run.mode === "daily" && run.date === scores.dailyDate);
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
@@ -49,9 +49,14 @@ export function Landing({
               <Link href="/daily"><Archive className="size-4" />Archive</Link>
             </Button>
           </div>
-          {plusEnabled && <Link href="/plus" className="inline-flex min-h-11 items-center justify-center text-xs text-primary underline underline-offset-4">
-            {plus ? "Plus unlocked · Your account" : "Unlimited + Archive · $5 once"}
-          </Link>}
+          {(account?.enabled || (account?.accounts && !account.email)) && (
+            <div className="flex flex-wrap items-center justify-center gap-x-4 text-xs">
+              {account.accounts && !account.email && <Link href="/account" className="inline-flex min-h-11 items-center text-primary underline underline-offset-4">Sign in free to save your streak</Link>}
+              {account.enabled && <Link href="/plus" className="inline-flex min-h-11 items-center text-primary underline underline-offset-4">
+                {account.plus ? "Plus unlocked" : "Unlimited + Archive · $5 once"}
+              </Link>}
+            </div>
+          )}
           {error && <p className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive" role="alert">{error}</p>}
         </div>
         {scores && (
