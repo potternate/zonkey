@@ -8,6 +8,7 @@ import { getPlayerId, resetPlayerId } from "./player-id";
 
 export interface Account {
   enabled: boolean;
+  accounts: boolean;
   email: string | null;
   plus: boolean;
   playerId: string | null;
