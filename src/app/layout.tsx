@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Press_Start_2P, VT323 } from "next/font/google";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const vt323 = VT323({
+  variable: "--font-vt323",
   subsets: ["latin"],
+  weight: "400",
+});
+
+const pressStart = Press_Start_2P({
+  variable: "--font-press-start",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -50,7 +57,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#17120e",
+  themeColor: "#120b22",
   colorScheme: "dark light",
 };
 
@@ -60,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} dark`} suppressHydrationWarning>
+    <html lang="en" className={`${vt323.variable} ${pressStart.variable} dark`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

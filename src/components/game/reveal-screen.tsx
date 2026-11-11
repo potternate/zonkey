@@ -27,7 +27,7 @@ function Card({ label, word, matched, delay }: { label: string; word: string; ma
       style={{ animationDelay: `${delay}ms` }}
     >
       <span className="eyebrow text-muted-foreground">{label}</span>
-      <BigWord word={word} className="text-[clamp(1.125rem,5vw,2rem)] sm:text-3xl" />
+      <BigWord word={word} className="text-[clamp(1.6rem,7vw,2.5rem)]" />
     </div>
   );
 }
@@ -54,7 +54,7 @@ export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses, conti
 
       <div className="animate-in fade-in fill-mode-both text-center delay-700 duration-500">
         {reveal.matched ? (
-          <p className="animate-pop text-2xl font-bold tracking-tight text-success">Connected.</p>
+          <p className="animate-pop glow font-pixel text-lg text-success uppercase">Connected!</p>
         ) : gameOver ? (
           <p className="text-lg font-bold">Out of rounds.</p>
         ) : (

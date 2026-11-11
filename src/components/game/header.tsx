@@ -14,8 +14,8 @@ export function GameHeader({ round, maxRounds, label, summary }: { round: number
             <span
               key={i}
               className={cn(
-                "h-1.5 w-6 rounded-full transition-colors",
-                i < round - 1 ? "bg-primary/40" : i === round - 1 ? "bg-primary" : "bg-border",
+                "h-2 w-8 transition-colors",
+                i < round - 1 ? "bg-primary/50" : i === round - 1 ? "bg-primary" : "bg-border",
               )}
             />
           ))}

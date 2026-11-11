@@ -27,7 +27,7 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button variant="ghost" onClick={toggle} className="h-11 px-3" aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}>
+    <Button variant="outline" onClick={toggle} className="h-11 min-w-11 px-3" aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}>
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
   );

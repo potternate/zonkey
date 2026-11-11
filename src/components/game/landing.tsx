@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Archive, ArrowRight, Flame, Infinity as InfinityIcon } from "lucide-react";
+import { Archive, Flame, Infinity as InfinityIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { puzzleNumberForDate } from "@/lib/game/daily";
 import type { GameMode } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
 import type { Account } from "@/lib/client/api";
+import { PixelScene } from "./pixel-scene";
 import { WordPairCard } from "./word";
 
 export function Landing({
@@ -23,23 +24,24 @@ export function Landing({
   return (
     <div className="mx-auto grid w-full max-w-5xl flex-1 content-center gap-7 py-8 animate-in fade-in duration-500 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-16 lg:py-20">
       <div className="text-center lg:text-left">
-        <p className="eyebrow mb-4 text-primary">Your daily word safari</p>
-        <h1 className="text-[clamp(3rem,8vw,5.5rem)] font-bold leading-[0.95] tracking-[-0.06em]">
-          Meet in<br /><span className="text-primary italic">the middle.</span>
+        <p className="eyebrow mb-4 text-primary glow">Your daily word safari</p>
+        <h1 className="glitch font-pixel text-[clamp(1.6rem,7.5vw,3.25rem)] leading-[1.35]">
+          Meet in<br /><span className="text-primary">the middle</span>
         </h1>
-        <p className="mt-5 text-sm leading-6 text-muted-foreground sm:text-base">
-          Pick your word. Reveal Zonkey&rsquo;s. Meet in the middle.
+        <p className="mt-4 text-sm tracking-[0.12em] text-muted-foreground uppercase">
+          Pick your word · Reveal Zonkey&rsquo;s · Connect
         </p>
-        <WordPairCard wordA="zebra" wordB="donkey" className="mt-6 sm:mt-8" />
+        <PixelScene className="-mx-5 mt-6 h-44 w-[calc(100%+2.5rem)] border-y-2 border-[var(--pixel-shadow)] sm:mx-0 sm:h-56 sm:w-full sm:border-2" />
+        <WordPairCard wordA="zebra" wordB="donkey" className="relative z-10 mx-2 -mt-10 sm:mx-6" />
       </div>
-      <div className="mx-auto w-full max-w-md rounded-[2rem] border bg-card p-5 text-center shadow-sm sm:p-7">
+      <div className="mx-auto w-full max-w-md border bg-card p-5 text-center sm:p-7">
         <div className="mb-5 flex items-center justify-between text-xs text-muted-foreground">
           <span className="eyebrow text-primary">Daily {puzzleNumber !== null ? `#${puzzleNumber}` : ""}</span>
           <span>3 rounds · 5 guesses each</span>
         </div>
         <div className="space-y-3">
-          <Button onClick={() => onPlay("daily")} disabled={busy} className="h-14 w-full justify-between rounded-xl px-5 text-base font-bold">
-            {busy ? "Getting ready…" : `${dailyLabel}${puzzleNumber !== null ? ` #${puzzleNumber}` : ""}`}<ArrowRight className="size-5" />
+          <Button onClick={() => onPlay("daily")} disabled={busy} className="mb-3 h-16 w-full px-5 text-xl">
+            {busy ? "Getting ready…" : <><span aria-hidden="true">▶</span>{`${dailyLabel}${puzzleNumber !== null ? ` #${puzzleNumber}` : ""}`}<span aria-hidden="true">◀</span></>}
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" onClick={() => onPlay("unlimited")} disabled={busy} className="h-12 rounded-xl">

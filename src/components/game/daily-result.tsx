@@ -6,7 +6,7 @@ import { Copy, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/client/api";
 import { copyText, shareText } from "@/lib/client/share";
-import { buildDailyShareText, DAILY_MAX_SCORE } from "@/lib/game/daily-run";
+import { buildDailyShareText, DAILY_MAX_SCORE, DAILY_ROUNDS } from "@/lib/game/daily-run";
 import type { DailyRunView } from "@/lib/game/daily-run";
 import { DailyScoreChart } from "./daily-score-chart";
 
@@ -44,8 +44,8 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
     <div className="flex flex-1 flex-col items-center gap-6 py-8 text-center">
       <div className="space-y-3">
         <p className="eyebrow text-primary">{run.mode === "unlimited" ? "Unlimited" : `${run.mode === "archive" ? "Archive" : "Daily"} #${run.puzzleNumber}`} complete</p>
-        <h1 className="text-5xl font-bold tracking-tight tabular-nums">{run.score.toLocaleString("en-US")}<span className="mt-2 block text-sm font-normal text-muted-foreground">of {DAILY_MAX_SCORE.toLocaleString("en-US")} points</span></h1>
-        <p className="text-sm text-muted-foreground">{solved} of 5 rounds connected.</p>
+        <h1 className="glitch font-pixel text-4xl tabular-nums">{run.score.toLocaleString("en-US")}<span className="mt-3 block font-sans text-sm text-muted-foreground [text-shadow:none]">of {DAILY_MAX_SCORE.toLocaleString("en-US")} points</span></h1>
+        <p className="text-sm text-muted-foreground">{solved} of {DAILY_ROUNDS} rounds connected.</p>
       </div>
       <div className="w-full space-y-3">
         <Button onClick={share} disabled={sharing} className="h-14 w-full gap-2 rounded-xl text-base font-semibold">

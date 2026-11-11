@@ -97,7 +97,7 @@ export function PlusScreen() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-5 py-6 sm:py-10">
-      <Link href="/" className="min-h-11 text-3xl font-bold tracking-tight">zonkey</Link>
+      <Link href="/" className="glitch flex min-h-11 items-center font-pixel text-lg uppercase">zonkey</Link>
       <section className="my-auto rounded-3xl border bg-card p-6 sm:p-8">
         <p className="eyebrow text-primary">Zonkey Plus</p>
         <h1 className="mt-3 text-4xl font-bold tracking-[-0.05em]">

@@ -71,7 +71,7 @@ export function Zonkey({ children }: { children?: ReactNode }) {
         {phase === "scores" && <ScoresScreen account={account} scores={scores} error={scoresError} onHome={goHome} onRetry={refreshScores} onResult={(id) => { setPlay({ mode: "unlimited", id }); setPhase("play"); }} onDailyResult={openDaily} />}
       </div>
       {phase === "landing" && children}
-      <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-5 text-[11px] text-muted-foreground sm:mt-14">
+      <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-5 text-xs text-muted-foreground sm:mt-14">
         <span className="font-mono tracking-wide">zonkey.io</span>
         <div className="flex items-center gap-4">
           {account?.accounts && <a href="/account" className="inline-flex min-h-11 items-center underline underline-offset-4">{account.email ? "Account" : "Sign in"}</a>}
