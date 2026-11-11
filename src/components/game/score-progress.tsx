@@ -27,12 +27,12 @@ export function ScoreProgress({ history, mode, today }: {
             <polyline points={points.map(({ x, y }) => `${x},${y}`).join(" ")} fill="none" stroke="currentColor" strokeWidth="2" />
             {points.map(({ x, y, date, score }) => <circle key={date} cx={x} cy={y} r="3" fill="currentColor"><title>{date}: {score} points</title></circle>)}
           </svg>
-          <figcaption className="flex justify-between text-[11px] text-muted-foreground">
+          <figcaption className="flex justify-between text-xs text-muted-foreground">
             <span>Last 30 days · {mode === "daily" ? "puzzle date" : "played date"}</span><span>0–{DAILY_MAX_SCORE.toLocaleString("en-US")} pts</span>
           </figcaption>
         </figure>
       ) : <p className="text-xs text-muted-foreground">Finish a puzzle to start your trend.</p>}
-      <p className="text-[11px] leading-5 text-muted-foreground">
+      <p className="text-xs leading-5 text-muted-foreground">
         Averages use completed {mode === "daily" ? "Dailies" : mode === "archive" ? "Archive puzzles" : "Unlimited games"}. Missed days and unsolved rounds aren’t counted as extra guesses.
       </p>
     </section>

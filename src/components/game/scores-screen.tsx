@@ -18,7 +18,7 @@ export function ScoreSummary({ scores }: { scores: ModeScores }) {
       {items.map(([label, value]) => (
         <div key={label}>
           <dd className="text-2xl font-bold tracking-tight text-primary tabular-nums">{value}</dd>
-          <dt className="mt-1 text-[10px] text-muted-foreground">{label}</dt>
+          <dt className="mt-1 text-xs text-muted-foreground">{label}</dt>
         </div>
       ))}
     </dl>

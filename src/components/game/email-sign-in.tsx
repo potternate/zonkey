@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/client/api";
 import { setPlayerId } from "@/lib/client/player-id";
 
-const inputClass = "h-12 w-full rounded-xl border bg-background px-4 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary";
+const inputClass = "h-12 w-full px-4 text-base outline-none";
 
 export function EmailSignIn({ id, onSignedIn, note }: { id: string; onSignedIn: () => Promise<unknown>; note?: string }) {
   const [email, setEmail] = useState("");
@@ -39,11 +39,11 @@ export function EmailSignIn({ id, onSignedIn, note }: { id: string; onSignedIn: 
   return (
     <form onSubmit={submit} className="space-y-3">
       <label htmlFor={`${id}-email`} className="block text-sm font-semibold">Email</label>
-      <input id={`${id}-email`} type="email" autoComplete="email" value={email} required maxLength={254}
+      <input data-slot="input" id={`${id}-email`} type="email" autoComplete="email" value={email} required maxLength={254}
         readOnly={codeSent || busy} onChange={(event) => setEmail(event.target.value)} className={inputClass} />
       {codeSent && <>
         <label htmlFor={`${id}-code`} className="block text-sm font-semibold">Sign-in code</label>
-        <input id={`${id}-code`} autoComplete="one-time-code" inputMode="numeric" value={token} required
+        <input data-slot="input" id={`${id}-code`} autoComplete="one-time-code" inputMode="numeric" value={token} required
           pattern="[0-9]{6,10}" maxLength={10} readOnly={busy} onChange={(event) => setToken(event.target.value)} className={inputClass} />
       </>}
       <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl">

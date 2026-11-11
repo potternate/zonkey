@@ -19,7 +19,7 @@ function Pill({ word, tone }: { word: string; tone: "start" | "miss" | "hit" }) 
 export function Chain({ game }: { game: GameView }) {
   return (
     <ol className="flex w-full flex-col gap-2">
-      <li className="grid grid-cols-[2rem_1fr_1fr] items-center gap-2 text-[10px] font-bold tracking-[0.25em] text-muted-foreground">
+      <li className="grid grid-cols-[2rem_1fr_1fr] items-center gap-2 text-xs font-bold tracking-[0.25em] text-muted-foreground">
         <span />
         <span className="text-center">YOU</span>
         <span className="text-center">ZONKEY AI</span>

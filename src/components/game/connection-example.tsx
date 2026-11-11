@@ -9,11 +9,11 @@ export function ConnectionExample() {
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-success-border bg-success-muted p-3">
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">You pick</dt>
+          <dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">You pick</dt>
           <dd className="mt-1 text-lg font-bold text-success">Zonkey</dd>
         </div>
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">AI picks</dt>
+          <dt className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">AI picks</dt>
           <dd className="mt-1 text-lg font-bold text-success">Zonkey</dd>
         </div>
       </dl>

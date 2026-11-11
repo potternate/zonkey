@@ -69,7 +69,7 @@ export function ArchiveBrowser({ today }: { today: string }) {
             <ChevronRight className="size-5" />
           </Button>
         </div>
-        <div className="mb-2 grid grid-cols-7 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground" aria-hidden="true">
+        <div className="mb-2 grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground" aria-hidden="true">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => <span key={day}>{day}</span>)}
         </div>
         <div className="grid grid-cols-7 gap-1">
