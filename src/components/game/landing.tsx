@@ -40,7 +40,7 @@ export function Landing({
           <span>3 rounds · 5 guesses each</span>
         </div>
         <div className="space-y-3">
-          <Button onClick={() => onPlay("daily")} disabled={busy} className="mb-3 h-16 w-full px-5 text-xl">
+          <Button onClick={() => onPlay("daily")} disabled={busy} className="mb-3 h-auto min-h-16 w-full min-w-0 gap-3 px-4 py-3 text-[clamp(1.05rem,5vw,1.25rem)] leading-tight whitespace-normal">
             {busy ? "Getting ready…" : <><span aria-hidden="true">▶</span>{`${dailyLabel}${puzzleNumber !== null ? ` #${puzzleNumber}` : ""}`}<span aria-hidden="true">◀</span></>}
           </Button>
           <div className="grid grid-cols-2 gap-3">
