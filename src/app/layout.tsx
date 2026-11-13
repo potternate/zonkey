@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   description:
     "Play Zonkey, a free daily word association game. Connect with an AI across three rounds, score up to 3,000 points, and compare results or play Unlimited.",
   applicationName: "Zonkey",
+  appleWebApp: { capable: true, title: "Zonkey", statusBarStyle: "black" },
   alternates: { canonical: "/" },
   openGraph: {
     title: "Zonkey — Daily Word Association Game",

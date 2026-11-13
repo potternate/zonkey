@@ -6,9 +6,11 @@ import { Copy, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/client/api";
 import { copyText, shareText } from "@/lib/client/share";
+import { encodeShareCard } from "@/lib/game/share-card";
 import { buildDailyShareText, DAILY_MAX_SCORE, DAILY_ROUNDS } from "@/lib/game/daily-run";
 import type { DailyRunView } from "@/lib/game/daily-run";
 import { DailyScoreChart } from "./daily-score-chart";
+import { NextDailyCountdown } from "./next-daily-countdown";
 
 export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; onUnlimited: () => void; onHome: () => void }) {
   const [copyOnly, setCopyOnly] = useState(false);
@@ -24,7 +26,7 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
     setManualCopy(null);
     setMessage(null);
     setOpenSeparately(false);
-    const url = `${window.location.origin}${run.mode === "unlimited" ? "/" : `/?daily=${run.date}`}`;
+    const url = `${window.location.origin}/r/${encodeShareCard(run)}`;
     const text = buildDailyShareText(run, copyOnly ? url : undefined);
     const operation = copyOnly ? copyText(text) : shareText(text, url);
     void api.shareDaily(run.id);
@@ -58,6 +60,7 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
         {manualCopy && <textarea aria-label="Result to copy" value={manualCopy} readOnly onFocus={(event) => event.currentTarget.select()} className="min-h-52 w-full rounded-xl border bg-card p-3 text-sm" />}
         <p className="text-sm text-muted-foreground" aria-live="polite">{message}</p>
       </div>
+      {run.mode === "daily" && <NextDailyCountdown className="w-full border-y-2 border-dashed py-4" />}
       {run.mode === "daily" && <DailyScoreChart id={run.id} score={run.score} />}
       <div className="w-full divide-y border-y text-left">
         {run.rounds.map((round) => (
@@ -76,7 +79,6 @@ export function DailyResult({ run, onUnlimited, onHome }: { run: DailyRunView; o
           </details>
         ))}
       </div>
-      {run.mode === "daily" && <p className="text-xs text-muted-foreground">Next Daily at midnight UTC.</p>}
       <Button variant="ghost" onClick={onHome} className="h-11">Back to home</Button>
     </div>
   );
