@@ -3,16 +3,19 @@ const STORAGE_KEY = "zonkey-sound";
 type Sfx = "tick" | "match" | "miss";
 
 let context: AudioContext | null = null;
+let memoryEnabled = true;
 
 export function soundEnabled(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) !== "off";
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored === null ? memoryEnabled : stored !== "off";
   } catch {
-    return true;
+    return memoryEnabled;
   }
 }
 
 export function setSoundEnabled(on: boolean) {
+  memoryEnabled = on;
   try {
     localStorage.setItem(STORAGE_KEY, on ? "on" : "off");
   } catch {}
