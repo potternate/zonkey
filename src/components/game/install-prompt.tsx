@@ -12,6 +12,18 @@ interface InstallEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+let deferred: InstallEvent | null = null;
+const listeners = new Set<() => void>();
+
+// Registered at import time: the browser fires this once, possibly mid-game before this component mounts.
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferred = e as InstallEvent;
+    listeners.forEach((notify) => notify());
+  });
+}
+
 function standalone(): boolean {
   return window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
 }
@@ -32,9 +44,10 @@ export function InstallPrompt() {
       return;
     }
     if (ios()) setMode("ios");
-    const onPrompt = (e: Event) => { e.preventDefault(); setEvent(e as InstallEvent); setMode("prompt"); };
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", onPrompt);
+    const onPrompt = () => { if (deferred) { setEvent(deferred); setMode("prompt"); } };
+    onPrompt();
+    listeners.add(onPrompt);
+    return () => { listeners.delete(onPrompt); };
   }, []);
 
   function dismiss() {
@@ -44,6 +57,9 @@ export function InstallPrompt() {
 
   async function install() {
     if (!event) return;
+    deferred = null;
+    setEvent(null);
+    setMode(null);
     await event.prompt();
     const { outcome } = await event.userChoice;
     if (outcome === "accepted") dismiss();
