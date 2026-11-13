@@ -10,9 +10,11 @@ import { ScoresScreen } from "./scores-screen";
 import { BrandHeader } from "./brand-header";
 import { DailyGame } from "./daily-game";
 import { UnlimitedPicker } from "./unlimited-picker";
+import { SurvivalGame } from "./survival-game";
+import { Tutorial } from "./tutorial";
 import type { UnlimitedTheme } from "@/lib/game/themes";
 
-type Phase = "landing" | "scores" | "play" | "unlimited";
+type Phase = "landing" | "scores" | "play" | "unlimited" | "survival" | "tutorial";
 
 export function Zonkey({ children }: { children?: ReactNode }) {
   const [phase, setPhase] = useState<Phase>("landing");
@@ -63,11 +65,13 @@ export function Zonkey({ children }: { children?: ReactNode }) {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-10">
-      <BrandHeader onHome={goHome} onScores={() => { setPhase("scores"); void refreshScores(); }} home={phase === "landing"} disabled={false} />
+      <BrandHeader onHome={goHome} onTutorial={() => setPhase("tutorial")} onScores={() => { setPhase("scores"); void refreshScores(); }} home={phase === "landing"} disabled={false} />
       <div className={cn("flex w-full flex-1 flex-col", phase !== "landing" && "mx-auto max-w-lg")}>
         {phase === "play" && <DailyGame key={play.id ?? `${play.mode}:${play.date ?? "today"}:${play.theme ?? "all"}`} {...play} onHome={goHome} onUnlimited={chooseUnlimited} onProgress={refreshScores} />}
-        {phase === "landing" && <Landing onPlay={(mode) => mode === "unlimited" ? chooseUnlimited() : openDaily()} onScores={() => setPhase("scores")} scores={scores} busy={false} error={null} account={account} />}
-        {phase === "unlimited" && <UnlimitedPicker onChoose={(theme) => { setPlay({ mode: "unlimited", theme: theme ?? undefined }); setPhase("play"); }} onHome={goHome} busy={false} error={null} />}
+        {phase === "landing" && <Landing onPlay={(mode) => mode === "unlimited" ? chooseUnlimited() : openDaily()} onScores={() => setPhase("scores")} onTutorial={() => setPhase("tutorial")} scores={scores} busy={false} error={null} account={account} />}
+        {phase === "survival" && <SurvivalGame onHome={goHome} onProgress={refreshScores} />}
+        {phase === "tutorial" && <Tutorial onHome={goHome} onPlayDaily={() => openDaily()} />}
+        {phase === "unlimited" && <UnlimitedPicker onChoose={(theme) => { setPlay({ mode: "unlimited", theme: theme ?? undefined }); setPhase("play"); }} onSurvival={() => setPhase("survival")} onHome={goHome} busy={false} error={null} />}
         {phase === "scores" && <ScoresScreen account={account} scores={scores} error={scoresError} onHome={goHome} onRetry={refreshScores} onResult={(id) => { setPlay({ mode: "unlimited", id }); setPhase("play"); }} onDailyResult={openDaily} />}
       </div>
       {phase === "landing" && children}

@@ -8,8 +8,9 @@ import { ConnectionExample } from "./connection-example";
 import { ThemeToggle } from "./theme-toggle";
 
 export function BrandHeader({
-  onHome, onScores, home, disabled,
+  onHome, onScores, onTutorial, home, disabled,
 }: {
+  onTutorial: () => void;
   onHome: () => void;
   onScores: () => void;
   home: boolean;
@@ -56,7 +57,8 @@ export function BrandHeader({
         <p className="mt-4 text-xs leading-6 text-muted-foreground">
           A zonkey is a donkey–zebra hybrid. Finish each Daily on its UTC day to grow your streak, or play past puzzles in the archive as practice.
         </p>
-        <Button className="mt-7 mb-2 h-12 w-full" onClick={() => instructions.current?.close()}>Got it. Let&rsquo;s connect.</Button>
+        <Button className="mt-7 h-12 w-full" onClick={() => instructions.current?.close()}>Got it. Let&rsquo;s connect.</Button>
+        <Button variant="outline" className="mt-3 mb-2 h-12 w-full" onClick={() => { instructions.current?.close(); onTutorial(); }}>▶ Try the tutorial</Button>
       </dialog>
     </>
   );

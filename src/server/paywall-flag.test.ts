@@ -46,7 +46,7 @@ function request() {
 
 describe("disabled paywall surfaces", () => {
   it("keeps both modes visible while removing all upgrade copy and links", () => {
-    const html = renderToStaticMarkup(createElement(Landing, {
+    const html = renderToStaticMarkup(createElement(Landing, { onTutorial: () => undefined,
       onPlay: vi.fn(), onScores: vi.fn(), scores: null, busy: false, error: null,
       account: { enabled: false, accounts: true, email: null, plus: false, playerId: null, restore: false },
     }));
@@ -59,7 +59,7 @@ describe("disabled paywall surfaces", () => {
 
   it("offers a free account from home and Scores without the paywall", () => {
     const signedOut = { enabled: false, accounts: true, email: null, plus: false, playerId: null, restore: false };
-    const home = renderToStaticMarkup(createElement(Landing, {
+    const home = renderToStaticMarkup(createElement(Landing, { onTutorial: () => undefined,
       onPlay: vi.fn(), onScores: vi.fn(), scores: null, busy: false, error: null, account: signedOut,
     }));
     expect(home).toContain('href="/account"');
@@ -68,7 +68,7 @@ describe("disabled paywall surfaces", () => {
       account: signedOut, scores: null, error: null, onHome: vi.fn(), onRetry: vi.fn(), onResult: vi.fn(), onDailyResult: vi.fn(),
     }));
     expect(scores).toContain('href="/account"');
-    const signedIn = renderToStaticMarkup(createElement(Landing, {
+    const signedIn = renderToStaticMarkup(createElement(Landing, { onTutorial: () => undefined,
       onPlay: vi.fn(), onScores: vi.fn(), scores: null, busy: false, error: null,
       account: { ...signedOut, email: "player@example.com" },
     }));

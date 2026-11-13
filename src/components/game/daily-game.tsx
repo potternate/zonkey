@@ -12,14 +12,17 @@ import { RoundScreen } from "./round-screen";
 import { RevealScreen } from "./reveal-screen";
 import { DailyResult } from "./daily-result";
 import { THEME_LABELS, type UnlimitedTheme } from "@/lib/game/themes";
+import { addTally, hearts, livesLeft, tallyRun, type SurvivalTally } from "@/lib/game/survival";
 
 function messageOf(err: unknown): string {
   return err instanceof ApiError ? err.message : "Something went wrong. Try again.";
 }
 
-export function DailyGame({ date, id, mode = "daily", theme, onHome, onUnlimited, onProgress }: {
+export function DailyGame({ date, id, mode = "daily", theme, survival, onHome, onUnlimited, onProgress }: {
   date?: string; onHome: () => void; onUnlimited: () => void; onProgress: () => void;
   id?: string; mode?: "daily" | "unlimited"; theme?: UnlimitedTheme;
+  /** Survival mode: chains Unlimited runs until three rounds are lost. */
+  survival?: { before: SurvivalTally; onEnd: (run: DailyRunView) => void };
 }) {
   const [run, setRun] = useState<DailyRunView | null>(null);
   const [reveal, setReveal] = useState<{ round: number; reveal: Reveal; firstGuesses?: FirstGuessBoard } | null>(null);
@@ -41,12 +44,13 @@ export function DailyGame({ date, id, mode = "daily", theme, onHome, onUnlimited
     start.then(({ run: next }) => {
       if (!cancelled) {
         setRun(next); setLoadError(null);
-        if (next.mode === "unlimited") window.history.replaceState(null, "", `/?run=${next.id}`);
+        if (next.mode === "unlimited" && !survival) window.history.replaceState(null, "", `/?run=${next.id}`);
       }
     }).catch((err: unknown) => {
       if (!cancelled) setLoadError(messageOf(err));
     });
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- survival only affects URL syncing
   }, [date, id, mode, theme, requestId, loadRetry]);
 
   useEffect(() => {
@@ -100,12 +104,22 @@ export function DailyGame({ date, id, mode = "daily", theme, onHome, onUnlimited
       <Button variant="ghost" onClick={onHome}>Back to home</Button>
     </div>
   );
-  if (run.status === "completed" && !reveal) return <DailyResult run={run} onHome={onHome} onUnlimited={onUnlimited} />;
+  if (run.status === "completed" && !reveal) {
+    return survival ? <p role="status" className="py-12 text-center text-muted-foreground">Next rounds coming up…</p>
+      : <DailyResult run={run} onHome={onHome} onUnlimited={onUnlimited} />;
+  }
   const displayRound = reveal?.round ?? run.current?.round ?? DAILY_ROUNDS;
   const finishedRound = run.rounds[displayRound - 1];
+  const tally = survival ? addTally(survival.before, tallyRun(run)) : null;
+  const lives = tally ? livesLeft(tally) : 0;
+  const roundDone = finishedRound.status !== "active";
+  const survivalEnds = survival !== undefined && roundDone && (lives === 0 || run.status === "completed");
   return (
     <>
-      <GameHeader round={displayRound} maxRounds={DAILY_ROUNDS} label={run.mode === "unlimited" ? `UNLIMITED${run.theme ? ` · ${THEME_LABELS[run.theme]}` : ""}` : `${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} summary={`${run.score.toLocaleString("en-US")} / ${DAILY_MAX_SCORE.toLocaleString("en-US")} pts`} />
+      {tally ? <GameHeader round={displayRound} maxRounds={DAILY_ROUNDS} label="SURVIVAL"
+        roundLabel={`Round ${survival!.before.rounds + displayRound}`}
+        summary={`${hearts(lives)} · ${tally.total.toLocaleString("en-US")} pts`} />
+      : <GameHeader round={displayRound} maxRounds={DAILY_ROUNDS} label={run.mode === "unlimited" ? `UNLIMITED${run.theme ? ` · ${THEME_LABELS[run.theme]}` : ""}` : `${run.mode === "archive" ? "ARCHIVE" : "DAILY"} #${run.puzzleNumber}`} summary={`${run.score.toLocaleString("en-US")} / ${DAILY_MAX_SCORE.toLocaleString("en-US")} pts`} />}
       {!reveal && run.current && (
         <>
           <p className="mt-3 text-xs text-muted-foreground">Guess {run.current.guess} / {DAILY_GUESSES} · {DAILY_POINTS[run.current.guess - 1]} pts</p>
@@ -118,10 +132,14 @@ export function DailyGame({ date, id, mode = "daily", theme, onHome, onUnlimited
       )}
       {reveal && (
         <RevealScreen key={`${reveal.round}:${reveal.reveal.roundNumber}`} reveal={reveal.reveal} firstGuesses={reveal.firstGuesses}
-          gameOver={finishedRound.status !== "active"}
-          resultText={finishedRound.status !== "active" ? `Round ${displayRound}: ${finishedRound.score} points` : undefined}
-          continueLabel={run.status === "completed" ? "See your score" : finishedRound.status !== "active" ? `Round ${displayRound + 1} →` : "Next guess →"}
-          onContinue={() => setReveal(null)} />
+          gameOver={roundDone}
+          resultText={!roundDone ? undefined : survival
+            ? finishedRound.status === "lost" ? `−1 life · ${hearts(lives)}` : `+${finishedRound.score} points`
+            : `Round ${displayRound}: ${finishedRound.score} points`}
+          continueLabel={survival
+            ? lives === 0 && roundDone ? "Game over →" : roundDone ? "Next round →" : "Next guess →"
+            : run.status === "completed" ? "See your score" : roundDone ? `Round ${displayRound + 1} →` : "Next guess →"}
+          onContinue={() => survivalEnds ? survival.onEnd(run) : setReveal(null)} />
       )}
     </>
   );
