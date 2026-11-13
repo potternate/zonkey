@@ -30,9 +30,24 @@ describe("OpenAI guess judge", () => {
   });
 
   it("checks the committed AI answer for later-round semantic equivalence", async () => {
-    complete.mockResolvedValue(response("boat", null, true));
+    complete.mockResolvedValue(response("boat", null, true, 95));
     expect(await judge.reviewAnswer({ ...input, roundNumber: 2, aiAnswer: "ship", boardWords: [] })).toMatchObject({ semanticMatch: true });
     expect(JSON.parse(complete.mock.calls[0][0].messages[1].content).aiAnswer).toBe("ship");
+  });
+
+  it("does not rewrite a different guess into the AI answer", async () => {
+    complete.mockResolvedValue(response("ship", null, true, 100));
+    expect(await judge.reviewAnswer({ ...input, answer: "pizza", wordA: "cheese", roundNumber: 2, aiAnswer: "ship", boardWords: [] }))
+      .toMatchObject({ word: "pizza" });
+    complete.mockResolvedValue(response("ship", null, false, 100));
+    expect(await judge.reviewAnswer({ ...input, answer: "shpi", roundNumber: 2, aiAnswer: "ship", boardWords: [] }))
+      .toMatchObject({ word: "ship" });
+  });
+
+  it("ignores a semantic match the judge itself rates as distant", async () => {
+    complete.mockResolvedValue(response("pizza", null, true, 10));
+    expect(await judge.reviewAnswer({ ...input, answer: "pizza", wordA: "cheese", roundNumber: 2, aiAnswer: "ship", boardWords: [] }))
+      .toMatchObject({ semanticMatch: false });
   });
 
   it("returns a clamped closeness only for later rounds", async () => {
