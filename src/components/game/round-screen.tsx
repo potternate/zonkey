@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { validateAnswer } from "@/lib/game/normalize";
 import type { CurrentRoundView } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
+import { unlockAudio } from "@/lib/client/sfx";
 import { WordPairCard } from "./word";
 
 interface Props {
@@ -42,6 +43,7 @@ export function RoundScreen({ round, submitting, preparing, prepareError, submit
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    unlockAudio();
     if (submitting) return;
     const check = validateAnswer(value, [round.wordA, round.wordB]);
     if (!check.ok) {

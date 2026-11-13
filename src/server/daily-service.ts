@@ -155,7 +155,10 @@ export async function submitDaily(input: DailyPosition & { answer: string }): Pr
       });
       return {
         run: next,
-        reveal: { roundNumber: input.guess, playerAnswer: guess.playerAnswer, aiAnswer: guess.aiAnswer, matched: guess.matched },
+        reveal: {
+          roundNumber: input.guess, playerAnswer: guess.playerAnswer, aiAnswer: guess.aiAnswer, matched: guess.matched,
+          ...(!opening && !guess.matched && review.closeness !== undefined ? { closeness: review.closeness } : {}),
+        },
         ...(input.guess === 1 ? { firstGuesses: await store.firstBoard(boardDate, input.round) } : {}),
       };
     } catch (err) {

@@ -83,3 +83,12 @@ export function PixelScene({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function PixelZebra({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 18 13" shapeRendering="crispEdges" aria-hidden="true" className={cn("pixelated block", className)}>
+      <path d={pixels(sprite(ZEBRA, 0, 0, "W"))} fill="#fbf3e6" />
+      <path d={pixels(sprite(ZEBRA, 0, 0, "B"))} fill="#12081a" />
+    </svg>
+  );
+}

@@ -26,6 +26,8 @@ export interface AnswerReview {
   word: string;
   boardWord: string | null;
   semanticMatch: boolean;
+  /** 0-100 closeness in meaning to the AI answer; only for rounds after 1. */
+  closeness?: number;
 }
 
 export interface AnswerJudge {
