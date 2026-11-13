@@ -335,6 +335,16 @@ dialog.bg-card {
   }
 }
 
+@keyframes bob {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@utility animate-bob {
+  animation: bob 0.9s steps(1, jump-end) infinite;
+}
+
 @utility animate-twinkle {
   animation: twinkle 2.4s steps(2, jump-none) infinite;
 }

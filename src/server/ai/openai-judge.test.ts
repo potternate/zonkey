@@ -14,8 +14,8 @@ const input: ReviewAnswerInput = {
 };
 const judge = new OpenAiAnswerJudge({ apiKey: "test-placeholder", model: "test-model" });
 
-function response(word: string, boardWord: string | null, semanticMatch = false) {
-  return { choices: [{ message: { content: JSON.stringify({ word, boardWord, semanticMatch }) } }] };
+function response(word: string, boardWord: string | null, semanticMatch = false, closeness = 0) {
+  return { choices: [{ message: { content: JSON.stringify({ word, boardWord, semanticMatch, closeness }) } }] };
 }
 
 beforeEach(() => complete.mockReset());
@@ -33,6 +33,13 @@ describe("OpenAI guess judge", () => {
     complete.mockResolvedValue(response("boat", null, true));
     expect(await judge.reviewAnswer({ ...input, roundNumber: 2, aiAnswer: "ship", boardWords: [] })).toMatchObject({ semanticMatch: true });
     expect(JSON.parse(complete.mock.calls[0][0].messages[1].content).aiAnswer).toBe("ship");
+  });
+
+  it("returns a clamped closeness only for later rounds", async () => {
+    complete.mockResolvedValue(response("boat", null, false, 140));
+    expect(await judge.reviewAnswer({ ...input, roundNumber: 2, aiAnswer: "ship", boardWords: [] })).toMatchObject({ closeness: 100 });
+    complete.mockResolvedValue(response("boat", "boat", false, 60));
+    expect(await judge.reviewAnswer(input)).not.toHaveProperty("closeness");
   });
 
   it("rejects an invented board entry", async () => {

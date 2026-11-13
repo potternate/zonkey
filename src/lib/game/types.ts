@@ -52,4 +52,6 @@ export interface Reveal {
   playerAnswer: string;
   aiAnswer: string;
   matched: boolean;
+  /** 0-100 closeness to Zonkey's word, sent for judged misses. */
+  closeness?: number;
 }

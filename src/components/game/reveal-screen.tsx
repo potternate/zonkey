@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { haptic, playSfx } from "@/lib/client/sfx";
 import type { Reveal } from "@/lib/game/types";
 import type { FirstGuessBoard } from "@/lib/game/first-guesses";
+import { zonkeyLine } from "@/lib/game/reactions";
 import { cn } from "@/lib/utils";
 import { BigWord } from "./word";
 import { FirstGuesses } from "./first-guesses";
+import { HeatMeter } from "./heat-meter";
+import { ScrambleWord } from "./scramble-word";
+import { ZonkeyReaction } from "./zonkey-reaction";
 
 interface Props {
   reveal: Reveal;
@@ -17,59 +22,78 @@ interface Props {
   resultText?: string;
 }
 
-function Card({ label, word, matched, delay }: { label: string; word: string; matched: boolean; delay: number }) {
+const WORD_CLASS = "text-[clamp(1.6rem,7vw,2.5rem)]";
+
+function Card({ label, matched, delay, children }: { label: string; matched: boolean; delay: number; children: React.ReactNode }) {
   return (
     <div
       className={cn(
-        "animate-flip-in flex min-w-0 flex-col items-center gap-2 rounded-2xl border px-4 py-5",
+        "animate-flip-in flex min-w-0 flex-col items-center gap-2 border px-4 py-5",
         matched ? "border-success-border bg-success-muted text-success" : "border-border bg-card",
       )}
       style={{ animationDelay: `${delay}ms` }}
     >
       <span className="eyebrow text-muted-foreground">{label}</span>
-      <BigWord word={word} className="text-[clamp(1.6rem,7vw,2.5rem)]" />
+      {children}
     </div>
   );
 }
 
 export function RevealScreen({ reveal, gameOver, onContinue, firstGuesses, continueLabel, resultText }: Props) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [landed, setLanded] = useState(false);
+  const matched = landed && reveal.matched;
+
+  const land = useCallback(() => {
+    setLanded(true);
+    playSfx(reveal.matched ? "match" : "miss");
+    haptic(reveal.matched ? "success" : "light");
+  }, [reveal.matched]);
 
   useEffect(() => {
-    const t = setTimeout(() => buttonRef.current?.focus(), 700);
-    return () => clearTimeout(t);
-  }, []);
+    if (landed) buttonRef.current?.focus();
+  }, [landed]);
+
+  const line = zonkeyLine({
+    matched: reveal.matched,
+    synonym: reveal.playerAnswer !== reveal.aiAnswer,
+    opening: reveal.roundNumber === 1,
+    roundOver: gameOver,
+    closeness: reveal.closeness,
+  }, `${reveal.playerAnswer}:${reveal.aiAnswer}:${reveal.roundNumber}`);
 
   return (
     <div className="flex flex-1 flex-col gap-4 pt-4">
       <div className="grid grid-cols-2 gap-3 [perspective:800px]">
-        <Card label="YOU" word={reveal.playerAnswer} matched={reveal.matched} delay={0} />
-        <Card label="ZONKEY AI" word={reveal.aiAnswer} matched={reveal.matched} delay={250} />
+        <Card label="YOU" matched={matched} delay={0}><BigWord word={reveal.playerAnswer} className={WORD_CLASS} /></Card>
+        <Card label="ZONKEY AI" matched={matched} delay={250}>
+          <ScrambleWord word={reveal.aiAnswer} delay={300} className={WORD_CLASS} onTick={() => playSfx("tick")} onDone={land} />
+        </Card>
       </div>
-      {resultText && <p className="text-center text-lg font-semibold tabular-nums">{resultText}</p>}
 
-      {reveal.matched && reveal.playerAnswer !== reveal.aiAnswer && (
-        <p className="text-center text-sm text-success">Synonyms count as a connection.</p>
+      {landed && (
+        <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+          {resultText && <p className="text-center text-lg font-semibold tabular-nums">{resultText}</p>}
+          {reveal.matched ? (
+            <p className="animate-pop glow text-center font-pixel text-lg text-success uppercase">Connected!</p>
+          ) : reveal.closeness !== undefined && <HeatMeter closeness={reveal.closeness} />}
+          <ZonkeyReaction line={line} />
+          {!reveal.matched && !gameOver && (
+            <p className="-mt-2 text-center text-sm text-muted-foreground">
+              Next pair: <span className="text-foreground uppercase">{reveal.playerAnswer} ↔ {reveal.aiAnswer}</span>
+            </p>
+          )}
+        </div>
       )}
-
-      <div className="animate-in fade-in fill-mode-both text-center delay-700 duration-500">
-        {reveal.matched ? (
-          <p className="animate-pop glow font-pixel text-lg text-success uppercase">Connected!</p>
-        ) : gameOver ? (
-          <p className="text-lg font-bold">Out of rounds.</p>
-        ) : (
-          <p className="text-sm text-muted-foreground">No match. Try this pair next.</p>
-        )}
-      </div>
 
       <Button
         ref={buttonRef}
         onClick={onContinue}
-        className="animate-in fade-in fill-mode-both h-14 rounded-2xl text-base font-semibold delay-700 duration-500"
+        className={cn("h-14 text-base font-semibold transition-opacity", !landed && "pointer-events-none opacity-0")}
       >
         {continueLabel ?? (gameOver ? "See your result" : "Next connection →")}
       </Button>
-      {reveal.roundNumber === 1 && firstGuesses && <FirstGuesses board={firstGuesses} yourWord={reveal.playerAnswer} />}
+      {landed && reveal.roundNumber === 1 && firstGuesses && <FirstGuesses board={firstGuesses} yourWord={reveal.playerAnswer} />}
     </div>
   );
 }

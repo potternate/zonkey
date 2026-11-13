@@ -18,12 +18,16 @@ are not equivalence. A boat is not water; fire is not heat; a dog is not a cat.
 For rounds after 1, compare the corrected guess with the already committed AI answer.
 Set semanticMatch true only if they mean the same thing in the context of both endpoints.
 For round 1 semanticMatch must be false. For later rounds boardWord must be null.
+Also rate closeness from 0 to 100: how near the corrected guess is to the AI answer in
+meaning, given both endpoints. 100 means the same concept, about 75 a near miss, about 50
+closely related, about 25 loosely related, and under 10 unrelated. For round 1 use 0.
 Return the required structured JSON.`;
 
 const reviewSchema = z.object({
   word: z.string(),
   boardWord: z.string().nullable(),
   semanticMatch: z.boolean(),
+  closeness: z.number().nullish(),
 });
 
 export class OpenAiAnswerJudge implements AnswerJudge {
@@ -63,8 +67,9 @@ export class OpenAiAnswerJudge implements AnswerJudge {
                 word: { type: "string" },
                 boardWord: { type: ["string", "null"] },
                 semanticMatch: { type: "boolean" },
+                closeness: { type: "integer" },
               },
-              required: ["word", "boardWord", "semanticMatch"],
+              required: ["word", "boardWord", "semanticMatch", "closeness"],
               additionalProperties: false,
             },
           },
@@ -77,7 +82,11 @@ export class OpenAiAnswerJudge implements AnswerJudge {
       }
       const validation = validateAnswer(review.boardWord ?? review.word, [input.wordA, input.wordB]);
       if (!validation.ok) throw new Error("Judge returned an invalid word");
-      return { ...review, word: validation.word, semanticMatch: input.roundNumber > 1 && review.semanticMatch };
+      const later = input.roundNumber > 1;
+      return {
+        word: validation.word, boardWord: review.boardWord, semanticMatch: later && review.semanticMatch,
+        ...(later && typeof review.closeness === "number" ? { closeness: Math.max(0, Math.min(100, Math.round(review.closeness))) } : {}),
+      };
     } catch (err) {
       throw new AiUnavailableError("Couldn't check the guess. Try again.", { cause: err });
     }

@@ -206,6 +206,7 @@ export async function submitAnswer(input: SubmitInput): Promise<SubmitResult> {
   }
   let playerAnswer = validation.word;
   let result: SubmitAnswerResult = { ok: false, code: "board_changed" };
+  let closeness: number | undefined;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const boardKey = firstGuessBoardKey(game);
     const boardAttempts = input.roundNumber === 1 ? (await store.getFirstGuesses(boardKey)).attempts : undefined;
@@ -227,6 +228,7 @@ export async function submitAnswer(input: SubmitInput): Promise<SubmitResult> {
         throw new GameError("ai_unavailable", "Couldn't check your guess. Your turn is saved—try again.");
       }
     }
+    closeness = review.closeness;
     const corrected = validateAnswer(review.word, endpoints);
     if (!corrected.ok) throw new GameError("invalid_answer", corrected.error);
     playerAnswer = corrected.word;
@@ -271,6 +273,7 @@ export async function submitAnswer(input: SubmitInput): Promise<SubmitResult> {
       playerAnswer,
       aiAnswer: result.aiAnswer,
       matched: result.matched,
+      ...(!opening && !result.matched && closeness !== undefined ? { closeness } : {}),
     },
   };
 }

@@ -23,10 +23,14 @@ export class MockAnswerJudge implements AnswerJudge {
     const boardWord = input.roundNumber === 1
       ? input.boardWords.find((word) => canonical(word) === corrected) ?? null
       : null;
+    const semanticMatch = input.roundNumber > 1 && corrected === canonical(input.aiAnswer);
+    let hash = 0;
+    for (const char of `${corrected}:${canonical(input.aiAnswer)}`) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
     return {
       word: boardWord ?? corrected,
       boardWord,
-      semanticMatch: input.roundNumber > 1 && corrected === canonical(input.aiAnswer),
+      semanticMatch,
+      ...(input.roundNumber > 1 ? { closeness: semanticMatch ? 100 : 5 + (hash % 85) } : {}),
     };
   }
 }
