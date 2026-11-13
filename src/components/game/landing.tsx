@@ -49,7 +49,7 @@ export function Landing({
             {busy ? "Getting ready…" : <><span aria-hidden="true">▶</span>{`${dailyLabel}${puzzleNumber !== null ? ` #${puzzleNumber}` : ""}`}<span aria-hidden="true">◀</span></>}
           </Button>
           {dailyDone && <NextDailyCountdown className="mb-4" />}
-          {scores && !scores.dailyRuns?.history.length && <TutorialNudge onTutorial={onTutorial} />}
+          {scores && !scores.dailyRuns?.history.some((run) => run.mode === "daily") && <TutorialNudge onTutorial={onTutorial} />}
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" onClick={() => onPlay("unlimited")} disabled={busy} className="h-12 rounded-xl">
               <InfinityIcon className="size-4" />Unlimited
