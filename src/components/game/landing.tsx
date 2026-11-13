@@ -5,6 +5,8 @@ import { puzzleNumberForDate } from "@/lib/game/daily";
 import type { GameMode } from "@/lib/game/types";
 import type { PlayerScores } from "@/lib/game/scores";
 import type { Account } from "@/lib/client/api";
+import { InstallPrompt } from "./install-prompt";
+import { NextDailyCountdown } from "./next-daily-countdown";
 import { PixelScene } from "./pixel-scene";
 import { WordPairCard } from "./word";
 
@@ -20,6 +22,7 @@ export function Landing({
 }) {
   const daily = scores?.dailyRuns?.history.find((run) => run.mode === "daily" && run.date === scores.dailyDate);
   const dailyLabel = daily?.status === "active" ? "Resume Daily" : daily ? "View Daily result" : "Play Daily";
+  const dailyDone = daily !== undefined && daily.status !== "active";
   const puzzleNumber = scores ? puzzleNumberForDate(scores.dailyDate) : null;
   return (
     <div className="mx-auto grid w-full max-w-5xl flex-1 content-center gap-7 py-8 animate-in fade-in duration-500 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-16 lg:py-20">
@@ -43,6 +46,7 @@ export function Landing({
           <Button onClick={() => onPlay("daily")} disabled={busy} className="mb-3 h-auto min-h-16 w-full min-w-0 gap-3 px-4 py-3 text-[clamp(1.05rem,5vw,1.25rem)] leading-tight whitespace-normal">
             {busy ? "Getting ready…" : <><span aria-hidden="true">▶</span>{`${dailyLabel}${puzzleNumber !== null ? ` #${puzzleNumber}` : ""}`}<span aria-hidden="true">◀</span></>}
           </Button>
+          {dailyDone && <NextDailyCountdown className="mb-4" />}
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" onClick={() => onPlay("unlimited")} disabled={busy} className="h-12 rounded-xl">
               <InfinityIcon className="size-4" />Unlimited
@@ -67,6 +71,7 @@ export function Landing({
             {scores.dailyStreak.current ? `${scores.dailyStreak.current} day streak` : "Start a Daily streak"}
           </button>
         )}
+        {dailyDone && <InstallPrompt />}
       </div>
     </div>
   );

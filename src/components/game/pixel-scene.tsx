@@ -92,3 +92,8 @@ export function PixelZebra({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Standalone SVG markup for the zebra sprite, for image renderers that can't use React SVG. */
+export function zebraSvgMarkup(): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 13" shape-rendering="crispEdges"><path d="${pixels(sprite(ZEBRA, 0, 0, "W"))}" fill="#fbf3e6"/><path d="${pixels(sprite(ZEBRA, 0, 0, "B"))}" fill="#12081a"/></svg>`;
+}
